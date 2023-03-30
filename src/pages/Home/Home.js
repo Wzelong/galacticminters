@@ -2,6 +2,7 @@ import { React } from "react";
 import styled from "styled-components";
 import HomeHeader from "./HomeHeader";
 import GlobalFonts from "../../fonts/fonts";
+import Scene from "./Scene";
 
 const Home = () => {
   return (
@@ -9,6 +10,7 @@ const Home = () => {
       <GlobalFonts />
       <Body>
         <HomeHeader />
+        <Scene />
       </Body>
     </>
   );
@@ -24,5 +26,4 @@ const Body = styled.div`
   overflow: hidden;
   text-align: center;
   z-index: 0;
-  background-color: #000;
 `;

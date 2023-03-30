@@ -1,13 +1,21 @@
 import { React } from "react";
 import styled from "styled-components";
+import { ethers } from "ethers";
 import logo from "../../images/GalacticMintersLogo.png";
-import Metamask from "./Metamask";
+
 
 const HomeHeader = () => {
 
   const handleConnect = async () => {
-    const { provider, signer } = await Metamask();
-    // Use the provider and signer objects here
+    let signer = null;
+    let provider;
+    if (window.ethereum == null) {
+      console.log("MetaMask not installed; using read-only defaults");
+      provider = ethers.getDefaultProvider();
+    } else {
+      provider = new ethers.BrowserProvider(window.ethereum);
+      signer = await provider.getSigner();
+    }
   };
 
   return(
@@ -23,17 +31,17 @@ const HomeHeader = () => {
 const HeaderWrapper = styled.div`
   position: sticky;
   top: 0;
-  background-color: rgba(0, 0, 0, 0);
+  background-color: transparent;
   line-height: 1;
   width: 100%;
-  height: 110px;
+  height: 0px;
   z-index: 1;
 `;
 
 const Logo = styled.img`
   position: absolute;
   width: 400px;
-  left: 4vw;
+  left: 5vw;
   top: 70px;
   cursor: pointer;
   :hover {
