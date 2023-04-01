@@ -1,70 +1,42 @@
-# Getting Started with Create React App
+# GalacticMinters Project Proposal
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Galactic Minters is a decentralized web application that combines elements of exploration, resource management, and crafting of unique Non-Fungible Tokens (NFTs). Set in a vast, procedurally generated galaxy, players embark on a journey to discover new planets, gather precious resources, and craft one-of-a-kind energy cores, known as Galactic Cubes. These cubes, each with their unique appearance, are remnants of an ancient galactic civilization and can be installed in spaceships to enhance their capabilities. Players can trade Galactic Cubes in the game’s marketplace, adding real-world value to these digital assets.
 
-## Available Scripts
+## Objective
 
-In the project directory, you can run:
+The primary objective of Galactic Minters is to provide an immersive and engaging gaming experience where players can explore, collaborate, and trade while crafting rare and valuable NFTs in the form of Galactic Cubes. By leveraging blockchain technology, the game aims to create a decentralized, transparent, and secure platform for players to interact, trade, and showcase their unique creations.
 
-### `npm start`
+## Game Mechanics
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- Planet Generation: After signing up, each player is assigned a unique planet, complete with exclusive resources.
+- Exploration: Players explore the universe to discover new planets and gather information about other players’ resources. Travel time between planets is determined by distance and spaceship capabilities.
+- Resource Exchange: Players can send and receive resource exchange requests with others, facilitating collaboration and fostering a sense of community.
+- Time-Limited Recipes: Periodically, the game will release time-limited crafting recipes. Players must gather the required resources to create unique Galactic Cubes before the recipe expires.
+- Crafting: Players can craft Galactic Cubes using their resources or exchanging them with others. Cube appearances are generated through a material-mixing algorithm, ensuring variation in color, texture, and some rarely appeared symbols.
+- Spaceship Integration: Players can install their crafted Galactic Cubes into their spaceships, enhancing their capabilities, such as faster travel or improved cargo capacity.
+- Marketplace: Players can trade their crafted Galactic Cubes in the game’s marketplace. Each cube’s scarcity, uniqueness, and utility contribute to its value.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Technology Stack
 
-### `npm test`
+- Smart Contracts: Vyper 
+- Blockchain: Ethereum 
+- Frontend: React 
+- Backend: Firebase 
+- Wallet Integration: MetaMask 
+- Libraries: Ethers.js, React-Three, Ant-Design
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Marketing Strategy
 
-### `npm run build`
+Galactic Minters’ marketing strategy promotes the game’s unique exploration, crafting, and trading mechanics, emphasizing the value of collaboration and the creation of rare NFTs. By leveraging social media, influencer partnerships, and targeted advertising, the game aims to attract a diverse player base interested in exploring, collecting, and trading digital assets.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Timeline and Milestones
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+1. Concept development and design (Week 1)
+2. Smart contract and backend development (Week 2-3) 
+3. Frontend development and integration (Week 4-5)
+4. Beta testing and refinements (Week 6)
+5. Official launch (Week 7)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Conclusion
 
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Galactic Minters is an innovative decentralized web application that combines exploration, resource management, and NFT crafting to create a unique gaming experience. By harnessing the power of blockchain technology, the game aims to build a vibrant, engaging, and secure platform for players to explore, collaborate, and trade. With a well-executed development plan and marketing strategy, Galactic Minters has the potential to become a popular and successful addition to the NFT gaming market.
