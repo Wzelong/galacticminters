@@ -1,16 +1,14 @@
 import { React } from "react";
 import styled from "styled-components";
 import HomeHeader from "./HomeHeader";
-import GlobalFonts from "../../fonts/fonts";
 import Scene from "./Scene";
 
-const Home = () => {
+const Home = (props) => {
   return (
     <>
-      <GlobalFonts />
       <Body>
-        <HomeHeader />
-        <Scene />
+        <HomeHeader setUserConnect={props.setUserConnect}/>
+        <Scene setSceneLoaded={props.setSceneLoaded} />
       </Body>
     </>
   );

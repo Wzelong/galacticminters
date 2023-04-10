@@ -2,10 +2,12 @@ import { React } from "react";
 import styled from "styled-components";
 import { ethers } from "ethers";
 import logo from "../../images/GalacticMintersLogo.png";
+import { useNavigate } from "react-router-dom";
 
 
-const HomeHeader = () => {
-
+const HomeHeader = (props) => {
+  const navigate = useNavigate();
+  const setUserConnect = props.setUserConnect;
   const handleConnect = async () => {
     let signer = null;
     let provider;
@@ -15,13 +17,18 @@ const HomeHeader = () => {
     } else {
       provider = new ethers.BrowserProvider(window.ethereum);
       signer = await provider.getSigner();
+
+      if (signer != null) {
+        console.log(signer.getAddress());
+        setUserConnect(true);
+      }
     }
   };
 
   return(
     <>
       <HeaderWrapper>
-        <Logo src={logo}></Logo>
+        <Logo src={logo} onClick={() => {navigate("/"); window.location.reload();}}></Logo>
         <HeaderButton onClick={handleConnect}>Connect</HeaderButton>
       </HeaderWrapper>
     </>
@@ -35,7 +42,7 @@ const HeaderWrapper = styled.div`
   line-height: 1;
   width: 100%;
   height: 0px;
-  z-index: 1;
+  z-index: 2;
 `;
 
 const Logo = styled.img`

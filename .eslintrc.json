@@ -37,6 +37,9 @@
         ],
         "react/no-unknown-property": [
             0
+        ],
+        "react/prop-types": [
+            0
         ]
     }
 }
