@@ -1,11 +1,12 @@
 import { React, useState } from "react";
 import styled from "styled-components";
+import logo from "./images/PlayerHomeLogo.png";
 
 const Loading = (props) => {
   return (
     <LoadingWrapper loadingPercentage={props.loadingPercentage}>
-      <h1>Loading...</h1>
-      <LoadingText>{props.loadingPercentage}%</LoadingText>
+      <Logo src={logo} />
+      <LoadingText>Loading...   {props.loadingPercentage}%</LoadingText>
     </LoadingWrapper>
   );
 };
@@ -28,6 +29,12 @@ const LoadingWrapper = styled.div`
   font-family: "GalacticFont";
 `;
 
-const LoadingText = styled.h2`
-  font-family: "Playfair Display", serif;
+const LoadingText = styled.h1`
+  font-size: 1.5vw;
+  margin-top: 3vh;
+  font-weight: 300;
+`;
+
+const Logo = styled.img`
+  width: 5vw;
 `;

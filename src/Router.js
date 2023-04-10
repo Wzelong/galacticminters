@@ -28,14 +28,14 @@ const Router = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setLoadingPercentage((prevPercentage) => {
-        if (prevPercentage < 100) {
+        if (prevPercentage < 88) {
           return prevPercentage + 1;
         } else {
           clearInterval(interval);
           return 100;
         }
       });
-    }, 50);
+    }, 60);
     return () => clearInterval(interval);
   }, []);
 

@@ -28,7 +28,7 @@ const HomeHeader = (props) => {
   return(
     <>
       <HeaderWrapper>
-        <Logo src={logo} onClick={() => {navigate("/"); window.location.reload();}}></Logo>
+        <Logo src={logo}></Logo>
         <HeaderButton onClick={handleConnect}>Connect</HeaderButton>
       </HeaderWrapper>
     </>
@@ -50,10 +50,6 @@ const Logo = styled.img`
   width: 400px;
   left: 5vw;
   top: 70px;
-  cursor: pointer;
-  :hover {
-    opacity: 0.8;
-  }
 `;
 
 const HeaderButton = styled.div`
