@@ -35,7 +35,7 @@ const Router = () => {
           return 100;
         }
       });
-    }, 60);
+    }, 30);
     return () => clearInterval(interval);
   }, []);
 
@@ -47,7 +47,7 @@ const Router = () => {
           path="/"
           element={
             <>
-              <Loading loadingPercentage={loadingPercentage} />
+              {/*<Loading loadingPercentage={loadingPercentage} />*/}
               {userConnect ? (<Player setSceneLoaded={setSceneLoaded} />) : (<Home setUserConnect={setUserConnect} setSceneLoaded={setSceneLoaded}/>)}
             </>
           }

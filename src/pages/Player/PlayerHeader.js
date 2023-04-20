@@ -9,6 +9,7 @@ import { ShoppingCartOutlined, RocketOutlined } from "@ant-design/icons";
 const PlayerHeader = (props) => {
   const navigate = useNavigate();
   const setPlanetClicked = props.setPlanetClicked;
+  const setShowPlanetName = props.setShowPlanetName;
   const enterSpaceship = props.enterSpaceship;
   const leaveSpaceship = props.leaveSpaceship;
   const [insideSpaceship, setInsideSpaceship] = useState(false);
@@ -17,9 +18,11 @@ const PlayerHeader = (props) => {
     if (insideSpaceship) {
       leaveSpaceship.current.emitEvent("mouseDown");
       setInsidePlanet(false);
+      setShowPlanetName(true);
     } else {
       enterSpaceship.current.emitEvent("mouseDown");
       setPlanetClicked(false);
+      setShowPlanetName(false);
     }
     setInsideSpaceship(!insideSpaceship);
   };
@@ -30,11 +33,12 @@ const PlayerHeader = (props) => {
 
   const handlePlanetClick = () => {
     if (insidePlanet) {
-      setTimeout(() => leavePlanet.current.emitEvent("mouseDown"), 500);
+      setTimeout(() => {leavePlanet.current.emitEvent("mouseDown"); setShowPlanetName(true);}, 500);
       setPlanetClicked(false);
       setInsideSpaceship(false);
     } else {
       enterPlanet.current.emitEvent("mouseDown");
+      setShowPlanetName(false);
       setTimeout(() => setPlanetClicked(true), 500);
     }
     setInsidePlanet(!insidePlanet);

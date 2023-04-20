@@ -3,10 +3,12 @@ import styled from "styled-components";
 import Spline from "@splinetool/react-spline";
 import PlayerHeader from "./PlayerHeader";
 import ResourceDisplay from "./ResourceDisplay";
+import PlanetName from "./PlanetName";
 
 const Player = (props) => {
   const setSceneLoaded = props.setSceneLoaded;
   const [planetClicked, setPlanetClicked] = useState(false);
+  const [showPlanetName, setShowPlanetName] = useState(true);
   const enterSpaceship = useRef();
   const leaveSpaceship = useRef();
   const enterPlanet = useRef();
@@ -23,9 +25,10 @@ const Player = (props) => {
   return (
     <>
       <Body>
-        <PlayerHeader enterSpaceship={enterSpaceship} leaveSpaceship={leaveSpaceship} enterPlanet={enterPlanet} leavePlanet={leavePlanet} setPlanetClicked={setPlanetClicked}/>
+        <PlayerHeader enterSpaceship={enterSpaceship} leaveSpaceship={leaveSpaceship} enterPlanet={enterPlanet} leavePlanet={leavePlanet} setPlanetClicked={setPlanetClicked} setShowPlanetName={setShowPlanetName}/>
         <Spline scene="https://prod.spline.design/iYAOxeIY3PMVRSDv/scene.splinecode" onLoad={onLoad} />
         <ResourceDisplay planetClicked={planetClicked} />
+        <PlanetName showPlanetName={showPlanetName} />
       </Body>
     </>
   );
@@ -41,4 +44,5 @@ const Body = styled.div`
   overflow: hidden;
   text-align: center;
   z-index: 0;
+  text-align: center;
 `;
