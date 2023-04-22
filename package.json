@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@ant-design/icons": "^5.0.1",
+    "@react-spring/web": "^9.7.2",
     "@react-three/drei": "^9.58.5",
     "@react-three/fiber": "^8.12.0",
     "@splinetool/loader": "^0.9.275",
@@ -14,6 +15,7 @@
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "@types/three": "^0.150.0",
+    "@use-gesture/react": "^10.2.26",
     "antd": "^5.4.3",
     "ethers": "^6.1.0",
     "localforage": "^1.10.0",

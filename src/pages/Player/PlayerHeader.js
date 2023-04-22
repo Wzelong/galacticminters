@@ -1,59 +1,70 @@
-import { React, useState } from "react";
+import { React, useEffect, useState, useRef } from "react";
 import styled from "styled-components";
 import logo from "../../images/PlayerHomeLogo.png";
 import planetLogo from "../../images/planetIcon.png";
+import cubeIcon from "../../images/cubeIcon.png";
 import { useNavigate } from "react-router-dom";
 import { ShoppingCartOutlined, RocketOutlined } from "@ant-design/icons";
 
 
 const PlayerHeader = (props) => {
   const navigate = useNavigate();
-  const setPlanetClicked = props.setPlanetClicked;
-  const setShowPlanetName = props.setShowPlanetName;
-  const enterSpaceship = props.enterSpaceship;
-  const leaveSpaceship = props.leaveSpaceship;
-  const [insideSpaceship, setInsideSpaceship] = useState(false);
+  const [animationState, setAnimationState] = useState(-1);
 
-  const handleSpaceshipClick = () => {
-    if (insideSpaceship) {
-      leaveSpaceship.current.emitEvent("mouseDown");
-      setInsidePlanet(false);
-      setShowPlanetName(true);
+  const { setPlanetClicked, setCubeClicked, setShowPlanetName, enterSpaceship, enterPlanet, enterCube, enterMarket, leave } = props;
+
+  function handleClick(stateNum) {
+    if (animationState === stateNum) {
+      setAnimationState(0);
     } else {
-      enterSpaceship.current.emitEvent("mouseDown");
-      setPlanetClicked(false);
-      setShowPlanetName(false);
+      setAnimationState(stateNum);
     }
-    setInsideSpaceship(!insideSpaceship);
-  };
+  }
 
-  const enterPlanet = props.enterPlanet;
-  const leavePlanet = props.leavePlanet;
-  const [insidePlanet, setInsidePlanet] = useState(false);
-
-  const handlePlanetClick = () => {
-    if (insidePlanet) {
-      setTimeout(() => {leavePlanet.current.emitEvent("mouseDown"); setShowPlanetName(true);}, 500);
+  useEffect(() => {
+    switch (animationState) {
+    case 0: // Return to initial state
+      setTimeout(() => {leave.current.emitEvent("mouseDown"); setShowPlanetName(true);}, 500);
       setPlanetClicked(false);
-      setInsideSpaceship(false);
-    } else {
+      setCubeClicked(false);
+      break;
+    case 1: // enter cube
+      setTimeout(() => {enterCube.current.emitEvent("mouseDown"); setShowPlanetName(false); setTimeout(() => setCubeClicked(true), 500);}, 500);
+      setPlanetClicked(false);
+      break;
+    case 2: // enter planet
       enterPlanet.current.emitEvent("mouseDown");
+      setCubeClicked(false);
       setShowPlanetName(false);
       setTimeout(() => setPlanetClicked(true), 500);
+      break;
+    case 3: // enter spaceship
+      enterSpaceship.current.emitEvent("mouseDown");
+      setShowPlanetName(false);
+      setPlanetClicked(false);
+      setCubeClicked(false);
+      break;
+    case 4: // enter market
+      setTimeout(() => {enterMarket.current.emitEvent("mouseDown"); setShowPlanetName(false);}, 500); 
+      setPlanetClicked(false);
+      setCubeClicked(false);
+      break;
+    default:
+      break;
     }
-    setInsidePlanet(!insidePlanet);
-  };
+  }, [animationState]);
 
 
   return(
     <>
       <HeaderWrapper>
         <Logo src={logo} onClick={() => {navigate("/"); window.location.reload();}} />
-        <PlanetLogo src={planetLogo} onClick={handlePlanetClick} />
-        <IconWrapper right={"12vw"} onClick={handleSpaceshipClick}>
+        <Icon src={cubeIcon} right={"27.5vw"} top={"55px"} onClick={() => handleClick(1)} />
+        <Icon src={planetLogo} onClick={() => handleClick(2)} />
+        <IconWrapper right={"12vw"} onClick={() => handleClick(3)}>
           <RocketOutlined style={{fontSize: "40px", color: "white"}}/>
         </IconWrapper>
-        <IconWrapper>
+        <IconWrapper onClick={() => handleClick(4)}>
           <ShoppingCartOutlined style={{fontSize: "40px", color: "white"}}/>
         </IconWrapper>
       </HeaderWrapper>
@@ -82,11 +93,11 @@ const Logo = styled.img`
   }
 `;
 
-const PlanetLogo = styled.img`
+const Icon = styled.img`
   position: absolute;
   width: 40px;
-  right: 19.5vw;
-  top: 56px;
+  right: ${props => props.right ? props.right : "19.5vw"};
+  top: ${props => props.top ? props.top : "56px"};
   cursor: pointer;
   :hover {
     opacity: 0.8;
