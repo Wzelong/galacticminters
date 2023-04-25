@@ -1,4 +1,4 @@
-import { React, useState, useEffect } from "react";
+import { React, useState, useEffect, useRef, Suspense } from "react";
 import styled from "styled-components";
 import silicon from "../../images/silicon.png";
 import gold from "../../images/gold.png";
@@ -6,18 +6,24 @@ import silver from "../../images/silver.png";
 import bi from "../../images/bi.png";
 import cu from "../../images/cu.png";
 import pt from "../../images/pt.png";
+import u from "../../images/u.png";
+import ti from "../../images/ti.png";
+import k from "../../images/k.png";
 import { Carousel } from "antd";
-import { useSpring, animated } from "@react-spring/web";
-import { useDrag } from "@use-gesture/react";
 import { Pagination } from "antd";
+import PreviewCanvas from "./PreviewCanvas";
+import mixbox from "mixbox";
 
 const materials = [
-  { src: silicon, caption: "SI" },
-  { src: gold, caption: "AU" },
-  { src: silver, caption: "AG" },
-  { src: bi, caption: "BI" },
-  { src: cu, caption: "CU" },
-  { src: pt, caption: "PT" },
+  { src: silicon, caption: "SI", color: "rgb(40, 40, 43)" },
+  { src: gold, caption: "AU", color: "rgb(255, 215, 0)" },
+  { src: silver, caption: "AG", color: "rgb(222, 222, 222)" },
+  { src: bi, caption: "BI", color: "rgb(224, 191, 184)" },
+  { src: cu, caption: "CU", color: "rgb(184, 115, 51)" },
+  { src: pt, caption: "PT", color: "rgb(135, 206, 235)" },
+  { src: u, caption: "U", color: "rgb(46, 139, 87)" },
+  { src: ti, caption: "TI", color: "rgb(159, 226, 191)" },
+  { src: k, caption: "K", color: "rgb(128, 0, 128)" },
 ];
 
 const CubeDisplay = (props) => {
@@ -37,13 +43,33 @@ const CubeDisplay = (props) => {
       setOpacity(0);
       setTimeout(() => setDisplay("none"), 1200);
     }
+    colorMixer();
   }, [props.cubeClicked]);
 
-  // Create an array of spring animations, one for each image
-  const springs = materials.map(() => useSpring(() => ({ x: 0, y: 0 })));
-  const bind = (index) => useDrag(({ down, movement: [mx, my], offset: [ox, oy] }) => {
-    springs[index][1].start({ x: down ? mx : 0, y: down ? my : 0, immediate: down });
-  });
+  const colors = [];
+
+  const [cubeColor, setCubeColor] = useState("rgb(113, 121, 126)");
+
+  // Create state to record clicked for each material
+  const [materialClicked, setMaterialClicked] = useState(materials.map(() => false));
+  const handleMaterialClick = (index) => {
+    const newClickedState = materialClicked.map((clicked, i) => {
+      if (i === index) {
+        return !clicked;
+      } else {
+        return materialClicked[i];
+      }
+    });
+    setMaterialClicked(newClickedState);
+    for (let i = 0; i < newClickedState.length; i++) {
+      if (newClickedState[i]) {
+        colors.push(materials[i].color);
+      }
+    }
+    const newColor = colorMixer(colors);
+    console.log(newColor);
+    setCubeColor(newColor);
+  };
 
   return (
     <>
@@ -56,21 +82,8 @@ const CubeDisplay = (props) => {
                   return (
                     <ImageContainer
                       key={index}
-                      {...bind(index)()}
-                      as={animated.div}
-                      style={{ x: springs[index][0].x, y: springs[index][0].y }}
-                    >
-                      <MaterialImg src={image.src} />
-                      <Caption>{image.caption}</Caption>
-                    </ImageContainer>
-                  );
-                } else {
-                  return (
-                    <ImageContainer
-                      key={index}
-                      {...bind(index)()}
-                      as={animated.div}
-                      style={{ x: springs[index][0].x, y: springs[index][0].y, display: "none" }}
+                      onClick={() => handleMaterialClick(index)}
+                      clicked={materialClicked[index]}
                     >
                       <MaterialImg src={image.src} />
                       <Caption>{image.caption}</Caption>
@@ -87,7 +100,11 @@ const CubeDisplay = (props) => {
                 total={materials.length}
               />
             </ImageList>
-            <DropZone></DropZone>
+            <PreviewScene>
+              <Suspense>
+                <PreviewCanvas cubeColor={cubeColor} />
+              </Suspense>
+            </PreviewScene>
           </Slide>
           <Slide>
           </Slide>
@@ -96,6 +113,37 @@ const CubeDisplay = (props) => {
     </>
   );
 };
+
+function colorMixer(colors = []) {
+  if (colors.length === 0) {
+    return "rgb(113, 121, 126)";
+  } else if (colors.length === 1) {
+    return colors[0];
+  } else if (colors.length === 2) {
+    let newColor = mixbox.lerp(colors[0], colors[1], 0.5);
+    newColor = "rgb(" + newColor[0] + ", " + newColor[1] + ", " + newColor[2] + ")";
+    return newColor;
+  } else {
+    const zArray = [];
+    for (let i = 0; i < colors.length; i++) {
+      zArray.push(mixbox.rgbToLatent(colors[i]));
+    }
+    let mixFactor = 1.0 / zArray.length;
+    let zMix = new Array(mixbox.LATENT_SIZE);
+    
+    for (let i = 0; i < zMix.length; i++) {
+      let zValue = 0;
+      for (let j = 0; j < zArray.length; j++) {
+        zValue += zArray[j][i] * mixFactor;
+      }
+      zMix[i] = zValue;
+    }
+
+    let rgbMix = mixbox.latentToRgb(zMix);
+    let newColor = "rgb(" + rgbMix[0] + ", " + rgbMix[1] + ", " + rgbMix[2] + ")";
+    return newColor;
+  }
+}
 
 export default CubeDisplay;
 
@@ -158,13 +206,11 @@ const ImageContainer = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: 2px solid rgb(255, 255, 255, 0);
-  transition: border 0.2s ease-in-out;
-  border-radius: 5px;
+  border: ${props => props.clicked ? "2px solid rgb(255, 255, 255, 1)" : "none"};
+  transition: border 0.25s ease-in-out;
   touch-action: none;
   background-color: black;
   :hover {
-    border: 2px solid rgb(255, 255, 255, 1);
     cursor: pointer;
   }
 `;
@@ -175,18 +221,19 @@ const Caption = styled.span`
   color: white;
   text-align: center;
   margin-top: -2rem;
+  border-bottom: 1px solid transparent;
+  transition: border-bottom 0.25s ease-in-out;
+  ${ImageContainer}:hover & {
+    border-bottom: 1px solid white;
+  }
 `;
 
-const DropZone = styled.div`
+const PreviewScene = styled.div`
   position: absolute;
-  left: 70%;
-  top: 30%;
-  height: 200px;
-  width: 200px;
-  border: 2px dashed white;
-  border-radius: 5px;
-  display: flex;
-  flex-direction: column;
+  left: 60%;
+  top: 5%;
+  height: 60vh;
+  width: 35vw;
 `;
 
 const Page = styled(Pagination)`

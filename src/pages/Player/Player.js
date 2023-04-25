@@ -18,7 +18,6 @@ const Player = (props) => {
   const leave = useRef();
 
   function onLoad(spline) {
-    console.log(spline);
     enterSpaceship.current = spline.findObjectByName("EnterSpaceship");
     enterPlanet.current = spline.findObjectByName("EnterPlanet");
     enterCube.current = spline.findObjectByName("EnterCube");
