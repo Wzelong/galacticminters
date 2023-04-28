@@ -9,7 +9,9 @@ export const AccountAddressProvider = ({ children }) => {
   const [accountAddress, setAccountAddress] = useState(null);
 
   return (
-    <AccountAddressContext.Provider value={{ accountAddress, setAccountAddress }}>
+    <AccountAddressContext.Provider
+      value={{ accountAddress, setAccountAddress }}
+    >
       {children}
     </AccountAddressContext.Provider>
   );

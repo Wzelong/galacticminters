@@ -6,11 +6,10 @@ const Loading = (props) => {
   return (
     <LoadingWrapper loadingPercentage={props.loadingPercentage}>
       <Logo src={logo} />
-      <LoadingText>Loading...   {props.loadingPercentage}%</LoadingText>
+      <LoadingText>Loading... {props.loadingPercentage}%</LoadingText>
     </LoadingWrapper>
   );
 };
-
 
 export default Loading;
 
