@@ -28,7 +28,6 @@ const Router = () => {
     };
     checkConnection();
   }, [setUserConnect]);
-
   useEffect(() => {
     const interval = setInterval(() => {
       setLoadingPercentage((prevPercentage) => {
@@ -39,7 +38,7 @@ const Router = () => {
           return 100;
         }
       });
-    }, 30);
+    }, 100);
     return () => clearInterval(interval);
   }, []);
 
@@ -51,7 +50,7 @@ const Router = () => {
           path="/"
           element={
             <>
-              {/*<Loading loadingPercentage={loadingPercentage} />*/}
+              {<Loading loadingPercentage={loadingPercentage} />}
               {userConnect ? (
                 <Player setSceneLoaded={setSceneLoaded} />
               ) : (

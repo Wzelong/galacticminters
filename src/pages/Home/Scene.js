@@ -68,5 +68,5 @@ const IntroTitle = styled.h1`
   font-size: 2.9vw;
   font-weight: 700;
   letter-spacing: -5px;
-  margin-top: 35vh;
+  margin-top: 45vh;
 `;
