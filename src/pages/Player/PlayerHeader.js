@@ -38,7 +38,7 @@ const PlayerHeader = (props) => {
           leave.current.emitEvent("mouseDown");
           setShowPlanetName(true);
           setRender("");
-        }, 500);
+        }, 600);
         setPlanetClicked(false);
         setCubeClicked(false);
         setMarketClicked(false);
@@ -47,8 +47,10 @@ const PlayerHeader = (props) => {
         setTimeout(() => {
           enterCube.current.emitEvent("mouseDown");
           setShowPlanetName(false);
-          setRender("cube");
-          setTimeout(() => setCubeClicked(true), 500);
+          setTimeout(() => {
+            setCubeClicked(true);
+            setRender("cube");
+          }, 600);
         }, 500);
         setPlanetClicked(false);
         setMarketClicked(false);
@@ -58,8 +60,10 @@ const PlayerHeader = (props) => {
         setCubeClicked(false);
         setMarketClicked(false);
         setShowPlanetName(false);
-        setRender("planet");
-        setTimeout(() => setPlanetClicked(true), 500);
+        setTimeout(() => {
+          setPlanetClicked(true);
+          setRender("planet");
+        }, 500);
         break;
       case 3: // enter spaceship
         enterSpaceship.current.emitEvent("mouseDown");
@@ -72,8 +76,10 @@ const PlayerHeader = (props) => {
         setTimeout(() => {
           enterMarket.current.emitEvent("mouseDown");
           setShowPlanetName(false);
-          setRender("market");
-          setTimeout(() => setMarketClicked(true), 500);
+          setTimeout(() => {
+            setMarketClicked(true);
+            setRender("market");
+          }, 600);
         }, 500);
         setPlanetClicked(false);
         setCubeClicked(false);

@@ -50,7 +50,7 @@ const Router = () => {
           path="/"
           element={
             <>
-              {<Loading loadingPercentage={loadingPercentage} />}
+              {/*<Loading loadingPercentage={loadingPercentage} />*/}
               {userConnect ? (
                 <Player setSceneLoaded={setSceneLoaded} />
               ) : (
