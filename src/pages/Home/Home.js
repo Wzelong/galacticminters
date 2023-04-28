@@ -7,7 +7,7 @@ const Home = (props) => {
   return (
     <>
       <Body>
-        <HomeHeader setUserConnect={props.setUserConnect}/>
+        <HomeHeader setUserConnect={props.setUserConnect} />
         <Scene setSceneLoaded={props.setSceneLoaded} />
       </Body>
     </>

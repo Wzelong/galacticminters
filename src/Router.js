@@ -4,19 +4,23 @@ import Home from "./pages/Home/Home";
 import Player from "./pages/Player/Player";
 import Loading from "./Loading";
 import GlobalFonts from "./fonts/fonts";
-
+import { useAccountAddress } from "./contexts/AccountAddrContext";
 
 const Router = () => {
   const [userConnect, setUserConnect] = useState(false);
   const [sceneLoaded, setSceneLoaded] = useState(false);
   const [loadingPercentage, setLoadingPercentage] = useState(0);
+  const { accountAddress, setAccountAddress } = useAccountAddress();
 
   useEffect(() => {
     const checkConnection = async () => {
       if (window.ethereum) {
-        const accounts = await window.ethereum.request({ method: "eth_accounts" });
+        const accounts = await window.ethereum.request({
+          method: "eth_accounts",
+        });
         if (accounts.length > 0) {
           setUserConnect(true);
+          setAccountAddress(accounts[0]);
         } else {
           setUserConnect(false);
         }
@@ -48,7 +52,14 @@ const Router = () => {
           element={
             <>
               {/*<Loading loadingPercentage={loadingPercentage} />*/}
-              {userConnect ? (<Player setSceneLoaded={setSceneLoaded} />) : (<Home setUserConnect={setUserConnect} setSceneLoaded={setSceneLoaded}/>)}
+              {userConnect ? (
+                <Player setSceneLoaded={setSceneLoaded} />
+              ) : (
+                <Home
+                  setUserConnect={setUserConnect}
+                  setSceneLoaded={setSceneLoaded}
+                />
+              )}
             </>
           }
         />

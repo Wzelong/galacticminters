@@ -5,7 +5,8 @@
     },
     "extends": [
         "eslint:recommended",
-        "plugin:react/recommended"
+        "plugin:react/recommended",
+        "prettier"
     ],
     "overrides": [],
     "parserOptions": {
@@ -13,13 +14,10 @@
         "sourceType": "module"
     },
     "plugins": [
-        "react"
+        "react",
+        "prettier"
     ],
     "rules": {
-        "indent": [
-            "error",
-            2
-        ],
         "linebreak-style": [
             "error",
             "unix"
@@ -40,6 +38,9 @@
         ],
         "react/prop-types": [
             0
+        ],
+        "prettier/prettier": [
+            "error"
         ]
     }
 }

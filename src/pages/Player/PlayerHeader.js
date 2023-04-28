@@ -6,12 +6,22 @@ import cubeIcon from "../../images/cubeIcon.png";
 import { useNavigate } from "react-router-dom";
 import { ShoppingCartOutlined, RocketOutlined } from "@ant-design/icons";
 
-
 const PlayerHeader = (props) => {
   const navigate = useNavigate();
   const [animationState, setAnimationState] = useState(-1);
 
-  const { setPlanetClicked, setCubeClicked, setShowPlanetName, enterSpaceship, enterPlanet, enterCube, enterMarket, leave } = props;
+  const {
+    setPlanetClicked,
+    setCubeClicked,
+    setMarketClicked,
+    setShowPlanetName,
+    enterSpaceship,
+    enterPlanet,
+    enterCube,
+    enterMarket,
+    leave,
+    setRender,
+  } = props;
 
   function handleClick(stateNum) {
     if (animationState === stateNum) {
@@ -23,49 +33,78 @@ const PlayerHeader = (props) => {
 
   useEffect(() => {
     switch (animationState) {
-    case 0: // Return to initial state
-      setTimeout(() => {leave.current.emitEvent("mouseDown"); setShowPlanetName(true);}, 500);
-      setPlanetClicked(false);
-      setCubeClicked(false);
-      break;
-    case 1: // enter cube
-      setTimeout(() => {enterCube.current.emitEvent("mouseDown"); setShowPlanetName(false); setTimeout(() => setCubeClicked(true), 500);}, 500);
-      setPlanetClicked(false);
-      break;
-    case 2: // enter planet
-      enterPlanet.current.emitEvent("mouseDown");
-      setCubeClicked(false);
-      setShowPlanetName(false);
-      setTimeout(() => setPlanetClicked(true), 500);
-      break;
-    case 3: // enter spaceship
-      enterSpaceship.current.emitEvent("mouseDown");
-      setShowPlanetName(false);
-      setPlanetClicked(false);
-      setCubeClicked(false);
-      break;
-    case 4: // enter market
-      setTimeout(() => {enterMarket.current.emitEvent("mouseDown"); setShowPlanetName(false);}, 500); 
-      setPlanetClicked(false);
-      setCubeClicked(false);
-      break;
-    default:
-      break;
+      case 0: // Return to initial state
+        setTimeout(() => {
+          leave.current.emitEvent("mouseDown");
+          setShowPlanetName(true);
+          setRender("");
+        }, 500);
+        setPlanetClicked(false);
+        setCubeClicked(false);
+        setMarketClicked(false);
+        break;
+      case 1: // enter cube
+        setTimeout(() => {
+          enterCube.current.emitEvent("mouseDown");
+          setShowPlanetName(false);
+          setRender("cube");
+          setTimeout(() => setCubeClicked(true), 500);
+        }, 500);
+        setPlanetClicked(false);
+        setMarketClicked(false);
+        break;
+      case 2: // enter planet
+        enterPlanet.current.emitEvent("mouseDown");
+        setCubeClicked(false);
+        setMarketClicked(false);
+        setShowPlanetName(false);
+        setRender("planet");
+        setTimeout(() => setPlanetClicked(true), 500);
+        break;
+      case 3: // enter spaceship
+        enterSpaceship.current.emitEvent("mouseDown");
+        setShowPlanetName(false);
+        setPlanetClicked(false);
+        setCubeClicked(false);
+        setMarketClicked(false);
+        break;
+      case 4: // enter market
+        setTimeout(() => {
+          enterMarket.current.emitEvent("mouseDown");
+          setShowPlanetName(false);
+          setRender("market");
+          setTimeout(() => setMarketClicked(true), 500);
+        }, 500);
+        setPlanetClicked(false);
+        setCubeClicked(false);
+        break;
+      default:
+        break;
     }
   }, [animationState]);
 
-
-  return(
+  return (
     <>
       <HeaderWrapper>
-        <Logo src={logo} onClick={() => {navigate("/"); window.location.reload();}} />
-        <Icon src={cubeIcon} right={"27.5vw"} top={"55px"} onClick={() => handleClick(1)} />
+        <Logo
+          src={logo}
+          onClick={() => {
+            navigate("/");
+            window.location.reload();
+          }}
+        />
+        <Icon
+          src={cubeIcon}
+          right={"27.5vw"}
+          top={"55px"}
+          onClick={() => handleClick(1)}
+        />
         <Icon src={planetLogo} onClick={() => handleClick(2)} />
         <IconWrapper right={"12vw"} onClick={() => handleClick(3)}>
-          <RocketOutlined style={{fontSize: "40px", color: "white"}}/>
+          <RocketOutlined style={{ fontSize: "40px", color: "white" }} />
         </IconWrapper>
         <IconWrapper onClick={() => handleClick(4)}>
-          <ShoppingCartOutlined style={{fontSize: "40px", color: "white"}}/>
+          <ShoppingCartOutlined style={{ fontSize: "40px", color: "white" }} />
         </IconWrapper>
       </HeaderWrapper>
     </>
@@ -96,8 +135,8 @@ const Logo = styled.img`
 const Icon = styled.img`
   position: absolute;
   width: 40px;
-  right: ${props => props.right ? props.right : "19.5vw"};
-  top: ${props => props.top ? props.top : "56px"};
+  right: ${(props) => (props.right ? props.right : "19.5vw")};
+  top: ${(props) => (props.top ? props.top : "56px")};
   cursor: pointer;
   :hover {
     opacity: 0.8;
@@ -113,7 +152,7 @@ const IconWrapper = styled.div`
   width: 50px;
   height: 50px;
   top: 50px;
-  right: ${props => props.right ? props.right : "5vw"};
+  right: ${(props) => (props.right ? props.right : "5vw")};
 
   :hover {
     cursor: pointer;

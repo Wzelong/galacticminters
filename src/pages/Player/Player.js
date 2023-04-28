@@ -5,12 +5,15 @@ import PlayerHeader from "./PlayerHeader";
 import ResourceDisplay from "./ResourceDisplay";
 import CubeDisplay from "./CubeDisplay";
 import PlanetName from "./PlanetName";
+import MarketDisplay from "./MarketDisplay";
 
 const Player = (props) => {
   const setSceneLoaded = props.setSceneLoaded;
   const [planetClicked, setPlanetClicked] = useState(false);
   const [cubeClicked, setCubeClicked] = useState(false);
+  const [marketClicked, setMarketClicked] = useState(false);
   const [showPlanetName, setShowPlanetName] = useState(true);
+  const [render, setRender] = useState("");
   const enterSpaceship = useRef();
   const enterPlanet = useRef();
   const enterCube = useRef();
@@ -29,10 +32,27 @@ const Player = (props) => {
   return (
     <>
       <Body>
-        <PlayerHeader enterSpaceship={enterSpaceship} enterPlanet={enterPlanet} enterCube={enterCube} enterMarket={enterMarket} leave={leave} setPlanetClicked={setPlanetClicked} setCubeClicked={setCubeClicked} setShowPlanetName={setShowPlanetName}/>
-        <Spline scene="https://prod.spline.design/iYAOxeIY3PMVRSDv/scene.splinecode" onLoad={onLoad} />
-        <ResourceDisplay planetClicked={planetClicked} />
-        <CubeDisplay cubeClicked={cubeClicked} />
+        <PlayerHeader
+          enterSpaceship={enterSpaceship}
+          enterPlanet={enterPlanet}
+          enterCube={enterCube}
+          enterMarket={enterMarket}
+          leave={leave}
+          setPlanetClicked={setPlanetClicked}
+          setCubeClicked={setCubeClicked}
+          setMarketClicked={setMarketClicked}
+          setShowPlanetName={setShowPlanetName}
+          setRender={setRender}
+        />
+        <Spline
+          scene="https://prod.spline.design/iYAOxeIY3PMVRSDv/scene.splinecode"
+          onLoad={onLoad}
+        />
+        {render === "planet" && (
+          <ResourceDisplay planetClicked={planetClicked} />
+        )}
+        {render === "cube" && <CubeDisplay cubeClicked={cubeClicked} />}
+        {render === "market" && <MarketDisplay marketClicked={marketClicked} />}
         <PlanetName showPlanetName={showPlanetName} />
       </Body>
     </>

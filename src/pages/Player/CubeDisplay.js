@@ -9,50 +9,83 @@ import pt from "../../images/pt.png";
 import u from "../../images/u.png";
 import ti from "../../images/ti.png";
 import k from "../../images/k.png";
-import { Carousel } from "antd";
-import { Pagination } from "antd";
+import { Carousel, Pagination } from "antd";
 import PreviewCanvas from "./PreviewCanvas";
 import mixbox from "mixbox";
+import {
+  ToolOutlined,
+  LoadingOutlined,
+  CheckCircleOutlined,
+} from "@ant-design/icons";
+import { useAccountAddress } from "../../contexts/AccountAddrContext";
+import { db } from "../../firebase";
+import {
+  doc,
+  getDocs,
+  getDoc,
+  updateDoc,
+  setDoc,
+  increment,
+  query,
+  where,
+  collection,
+} from "firebase/firestore";
 
 const materials = [
   { src: silicon, caption: "SI", color: "rgb(40, 40, 43)" },
-  { src: gold, caption: "AU", color: "rgb(255, 215, 0)" },
+  { src: gold, caption: "AU", color: "rgb(255, 192, 0)" },
   { src: silver, caption: "AG", color: "rgb(222, 222, 222)" },
-  { src: bi, caption: "BI", color: "rgb(224, 191, 184)" },
+  { src: bi, caption: "BI", color: "rgb(250, 160, 160)" },
   { src: cu, caption: "CU", color: "rgb(184, 115, 51)" },
   { src: pt, caption: "PT", color: "rgb(135, 206, 235)" },
   { src: u, caption: "U", color: "rgb(46, 139, 87)" },
   { src: ti, caption: "TI", color: "rgb(159, 226, 191)" },
-  { src: k, caption: "K", color: "rgb(128, 0, 128)" },
+  { src: k, caption: "K", color: "rgb(189,0,255)" },
 ];
 
 const CubeDisplay = (props) => {
-  const [display, setDisplay] = useState("none");
+  const cubePageMax = 6;
+  const { accountAddress } = useAccountAddress();
   const [opacity, setOpacity] = useState(0);
-  const [minIndex, setMinIndex] = useState(0);
-  const [maxIndex, setMaxIndex] = useState(9);
-  const handlePageChange = (page) => {
-    setMinIndex((page - 1) * 9);
-    setMaxIndex(page * 9);
-  };
+  const [playerCubes, setPlayerCubes] = useState([]);
+  const [cubeColor, setCubeColor] = useState("rgb(113, 121, 126)");
+  const [materialClicked, setMaterialClicked] = useState(
+    materials.map(() => false)
+  );
+  const [validCraft, setValidCraft] = useState(false);
+  const [disableCraft, setDisableCraft] = useState(false);
+  const [takeScreenshot, setTakeScreenshot] = useState(null);
+  const [craftLoading, setCraftLoading] = useState(false);
+  const [pageIndex, setPageIndex] = useState([0, cubePageMax]);
+  const [selling, setSelling] = useState(false);
+  const [priceValid, setPriceValid] = useState(false);
+  const [price, setPrice] = useState("");
+  const [cubeMaterial, setCubeMaterial] = useState(null);
+  const [cubeClickedIndex, setCubeClickedIndex] = useState(-1);
   useEffect(() => {
     if (props.cubeClicked) {
-      setDisplay("block");
-      setTimeout(() => setOpacity(1), 100);
+      setOpacity(1);
     } else {
       setOpacity(0);
-      setTimeout(() => setDisplay("none"), 1200);
     }
-    colorMixer();
+    getPlayerCubes();
   }, [props.cubeClicked]);
 
-  const colors = [];
-
-  const [cubeColor, setCubeColor] = useState("rgb(113, 121, 126)");
-
-  // Create state to record clicked for each material
-  const [materialClicked, setMaterialClicked] = useState(materials.map(() => false));
+  const handlePageChange = (page) => {
+    setPageIndex([(page - 1) * cubePageMax, page * cubePageMax]);
+  };
+  const getPlayerCubes = async () => {
+    const q = query(
+      collection(db, "cubes"),
+      where("owner", "==", accountAddress)
+    );
+    await getDocs(q).then((querySnapshot) => {
+      setPlayerCubes(querySnapshot.docs.map((doc) => doc.data()));
+    });
+  };
   const handleMaterialClick = (index) => {
+    setCubeClickedIndex(-1);
+    setSelling(false);
     const newClickedState = materialClicked.map((clicked, i) => {
       if (i === index) {
         return !clicked;
@@ -61,54 +94,224 @@ const CubeDisplay = (props) => {
       }
     });
     setMaterialClicked(newClickedState);
+    const materialList = [];
+    const colors = [];
     for (let i = 0; i < newClickedState.length; i++) {
       if (newClickedState[i]) {
         colors.push(materials[i].color);
+        materialList.push(materials[i].caption);
       }
     }
+    if (colors.length > 0) {
+      setValidCraft(true);
+    } else {
+      setValidCraft(false);
+    }
     const newColor = colorMixer(colors);
-    console.log(newColor);
     setCubeColor(newColor);
+    setCubeMaterial(materialList);
+  };
+  const handleCubeClick = (index) => {
+    setMaterialClicked(materialClicked.map(() => false));
+    setSelling(false);
+    if (index === cubeClickedIndex) {
+      setCubeClickedIndex(-1);
+      setCubeColor("rgb(113, 121, 126)");
+    } else {
+      setCubeClickedIndex(index);
+      setCubeColor(playerCubes[index].color);
+    }
+  };
+  const craft = async () => {
+    if (validCraft) {
+      setCraftLoading(true);
+      const color = cubeColor;
+      const screenshotURL = await takeScreenshot();
+      const cubeId = await getCurrentCubeId();
+      const cubeData = {
+        id: cubeId,
+        owner: accountAddress,
+        color: color,
+        material: cubeMaterial.join(" + "),
+        screenshot: screenshotURL,
+        onSell: false,
+        price: "0 ETH",
+      };
+      const cubeDocRef = doc(db, "cubes", cubeId.toString());
+      await setDoc(cubeDocRef, cubeData);
+      await incrementCubeId();
+      getPlayerCubes();
+      setTimeout(() => setCraftLoading(false), 2000);
+    }
+  };
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    setPrice(value);
+    if (isNaN(value) || value === "") {
+      setPriceValid(false);
+      setPrice("");
+    } else {
+      setPriceValid(true);
+    }
+  };
+  const handleSell = async () => {
+    if (priceValid) {
+      const cubeId = playerCubes[cubeClickedIndex].id;
+      const cubeDocRef = doc(db, "cubes", cubeId.toString());
+      await updateDoc(cubeDocRef, {
+        onSell: true,
+        price: price + " ETH",
+      });
+      await getPlayerCubes();
+      setSelling(false);
+      setPrice("");
+    }
+  };
+  const handleCancel = async () => {
+    const cubeId = playerCubes[cubeClickedIndex].id;
+    const cubeDocRef = doc(db, "cubes", cubeId.toString());
+    await updateDoc(cubeDocRef, {
+      onSell: false,
+      price: "0 ETH",
+    });
+    await getPlayerCubes();
+    setSelling(false);
+    setPrice("");
   };
 
   return (
     <>
-      <CubeWrapper display={display} opacity={opacity}>
-        <StyledSlider>
-          <Slide>
+      <CubeWrapper opacity={opacity}>
+        <StyledSlider
+          width={"50%"}
+          afterChange={(number) => {
+            if (number === 0) {
+              setDisableCraft(false);
+            } else {
+              setDisableCraft(true);
+            }
+          }}
+        >
+          <Slide height={"80vh"}>
             <ImageList>
               {materials.map((image, index) => {
-                if (index >= minIndex && index < maxIndex) {
+                return (
+                  <ImageContainer
+                    key={index}
+                    onClick={() => handleMaterialClick(index)}
+                    clicked={materialClicked[index]}
+                  >
+                    <MaterialImg src={image.src} />
+                    <Caption marginTop={"-2rem"} fontFamily={"GalacticFont"}>
+                      {image.caption}
+                    </Caption>
+                  </ImageContainer>
+                );
+              })}
+            </ImageList>
+          </Slide>
+          <Slide>
+            <CubeList>
+              {playerCubes.map((cube, index) => {
+                if (index >= pageIndex[0] && index < pageIndex[1]) {
                   return (
-                    <ImageContainer
+                    <CubeContainer
                       key={index}
-                      onClick={() => handleMaterialClick(index)}
-                      clicked={materialClicked[index]}
+                      onClick={() => handleCubeClick(index)}
+                      clicked={cubeClickedIndex === index}
                     >
-                      <MaterialImg src={image.src} />
-                      <Caption>{image.caption}</Caption>
-                    </ImageContainer>
+                      <CubeImg src={cube.screenshot} />
+                      <Caption
+                        marginTop={"-2rem"}
+                        fontFamily={
+                          "Arial Black, Arial Bold, Gadget, sans-serif"
+                        }
+                      >
+                        {cube.id}
+                      </Caption>
+                    </CubeContainer>
                   );
                 }
-              }
-              )}
+              })}
               <Page
                 simple
                 defaultCurrent={1}
-                pageSize={9}
+                pageSize={cubePageMax}
                 onChange={handlePageChange}
-                total={materials.length}
+                total={playerCubes.length === 0 ? 1 : playerCubes.length}
               />
-            </ImageList>
-            <PreviewScene>
-              <Suspense>
-                <PreviewCanvas cubeColor={cubeColor} />
-              </Suspense>
-            </PreviewScene>
-          </Slide>
-          <Slide>
+            </CubeList>
           </Slide>
         </StyledSlider>
+        <PreviewScene>
+          <StyledSlider width={"100%"}>
+            <Slide height={"70vh"}>
+              {craftLoading ? (
+                <IconWrapper valid={true}>
+                  <LoadingOutlined style={{ fontSize: "50px" }} />
+                </IconWrapper>
+              ) : (
+                <IconWrapper
+                  valid={validCraft}
+                  disableCraft={disableCraft}
+                  onClick={craft}
+                >
+                  <ToolOutlined style={{ fontSize: "50px" }} />
+                </IconWrapper>
+              )}
+              <Suspense>
+                <PreviewCanvas
+                  cubeColor={cubeColor}
+                  setTakeScreenshot={setTakeScreenshot}
+                />
+              </Suspense>
+            </Slide>
+            <Slide height={"70vh"}>
+              <CubeInfoWrapper>
+                {cubeClickedIndex >= 0 && (
+                  <>
+                    <h1>Cube Info</h1>
+                    <CubeInfo>
+                      <p>&bull; uid: {playerCubes[cubeClickedIndex].id}</p>
+                      <p>&bull; Color: {playerCubes[cubeClickedIndex].color}</p>
+                      <p>
+                        &bull; Material:{" "}
+                        {playerCubes[cubeClickedIndex].material}
+                      </p>
+                      <p>
+                        &bull; OnSell:{" "}
+                        {playerCubes[cubeClickedIndex].onSell.toString()}
+                      </p>
+                      <p>&bull; Price: {playerCubes[cubeClickedIndex].price}</p>
+                    </CubeInfo>
+                    {playerCubes[cubeClickedIndex].onSell ? (
+                      <SellCubeButton width={"40%"} onClick={handleCancel}>
+                        Cancel Cell
+                      </SellCubeButton>
+                    ) : selling ? (
+                      <PriceInputWrapper>
+                        <h3>Eth</h3>
+                        <PriceInput
+                          placeholder="price"
+                          value={price}
+                          onChange={handleInputChange}
+                        ></PriceInput>
+                        <StyledCheck valid={priceValid} onClick={handleSell} />
+                      </PriceInputWrapper>
+                    ) : (
+                      <SellCubeButton
+                        width={"28%"}
+                        onClick={() => setSelling(true)}
+                      >
+                        SELL
+                      </SellCubeButton>
+                    )}
+                  </>
+                )}
+              </CubeInfoWrapper>
+            </Slide>
+          </StyledSlider>
+        </PreviewScene>
       </CubeWrapper>
     </>
   );
@@ -121,7 +324,8 @@ function colorMixer(colors = []) {
     return colors[0];
   } else if (colors.length === 2) {
     let newColor = mixbox.lerp(colors[0], colors[1], 0.5);
-    newColor = "rgb(" + newColor[0] + ", " + newColor[1] + ", " + newColor[2] + ")";
+    newColor =
+      "rgb(" + newColor[0] + ", " + newColor[1] + ", " + newColor[2] + ")";
     return newColor;
   } else {
     const zArray = [];
@@ -130,7 +334,7 @@ function colorMixer(colors = []) {
     }
     let mixFactor = 1.0 / zArray.length;
     let zMix = new Array(mixbox.LATENT_SIZE);
-    
+
     for (let i = 0; i < zMix.length; i++) {
       let zValue = 0;
       for (let j = 0; j < zArray.length; j++) {
@@ -140,10 +344,28 @@ function colorMixer(colors = []) {
     }
 
     let rgbMix = mixbox.latentToRgb(zMix);
-    let newColor = "rgb(" + rgbMix[0] + ", " + rgbMix[1] + ", " + rgbMix[2] + ")";
+    let newColor =
+      "rgb(" + rgbMix[0] + ", " + rgbMix[1] + ", " + rgbMix[2] + ")";
     return newColor;
   }
 }
+
+const getCurrentCubeId = async () => {
+  const cubeCounterDocRef = doc(db, "metadata", "cubeCounter");
+  const cubeCounterSnapshot = await getDoc(cubeCounterDocRef);
+
+  if (!cubeCounterSnapshot.exists()) {
+    await setDoc(cubeCounterDocRef, { currentId: 0 });
+    return 0;
+  } else {
+    return cubeCounterSnapshot.data().currentId;
+  }
+};
+
+const incrementCubeId = async () => {
+  const cubeCounterDocRef = doc(db, "metadata", "cubeCounter");
+  await updateDoc(cubeCounterDocRef, { currentId: increment(1) });
+};
 
 export default CubeDisplay;
 
@@ -154,44 +376,38 @@ const CubeWrapper = styled.div`
   top: 15%;
   height: 80%;
   width: 90%;
-  opacity: ${props => props.opacity};
-  display: ${props => props.display};
+  opacity: ${(props) => props.opacity};
+  display: block;
   border-radius: 15px;
   transition: opacity 0.5s ease-in-out;
   color: white;
 `;
 
-
 const StyledSlider = styled(Carousel)`
   position: relative;
-  width: 100%;
+  width: ${(props) => props.width};
   height: 100%;
 `;
 
 const Slide = styled.div`
   position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: transparent;
-  flex-direction: row;
-  height: 80vh;
+  display: inline-block;
+  height: ${(props) => props.height};
   width: 45vw;
+  overflow-y: scroll;
 `;
 
 const ImageList = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
-  width: 45%;
-  height: 80%;
-  margin-left: 2.5%;
-  /* Hide scrollbar for Chrome, Safari, and Opera */
+  width: 90%;
+  height: 90%;
+  margin-left: 5%;
+  overflow-y: scroll;
   ::-webkit-scrollbar {
     display: none;
   }
-
-  /* Hide scrollbar for IE, Edge, and Firefox */
   -ms-overflow-style: none;
   scrollbar-width: none;
 `;
@@ -201,14 +417,42 @@ const MaterialImg = styled.img`
   object-fit: cover;
 `;
 
+const CubeList = styled.div`
+  display: inline-block;
+  width: 100%;
+  height: 80vh;
+`;
+
+const CubeImg = styled.img`
+  width: 102%;
+`;
+
+const CubeContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  float: left;
+  width: 32%;
+  margin-top: 3vh;
+  border: ${(props) =>
+    props.clicked
+      ? "2px solid rgb(255, 255, 255, 1)"
+      : "2px solid transparent"};
+  transition: border 0.25s ease-in-out;
+  :hover {
+    cursor: pointer;
+  }
+`;
+
 const ImageContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: ${props => props.clicked ? "2px solid rgb(255, 255, 255, 1)" : "none"};
+  border: ${(props) =>
+    props.clicked ? "2px solid rgb(255, 255, 255, 1)" : "none"};
   transition: border 0.25s ease-in-out;
-  touch-action: none;
   background-color: black;
   :hover {
     cursor: pointer;
@@ -216,11 +460,11 @@ const ImageContainer = styled.div`
 `;
 
 const Caption = styled.span`
-  font-family: "GalacticFont";
+  font-family: ${(props) => props.fontFamily};
   font-size: 1.2vw;
   color: white;
   text-align: center;
-  margin-top: -2rem;
+  margin-top: ${(props) => props.marginTop};
   border-bottom: 1px solid transparent;
   transition: border-bottom 0.25s ease-in-out;
   ${ImageContainer}:hover & {
@@ -231,18 +475,40 @@ const Caption = styled.span`
 const PreviewScene = styled.div`
   position: absolute;
   left: 60%;
-  top: 5%;
+  top: 4%;
   height: 60vh;
   width: 35vw;
+`;
+
+const IconWrapper = styled.div`
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: transparent;
+  width: 50px;
+  height: 50px;
+  top: 54vh;
+  left: 16vw;
+  z-index: 2;
+  color: ${(props) => (props.valid ? "white" : "grey")};
+  transition: color 0.15s ease-in-out;
+  display: ${(props) => (props.disableCraft ? "none" : "block")};
+
+  :hover {
+    cursor: ${(props) => (props.valid ? "pointer" : "not-allowed")};
+    color: grey;
+  }
 `;
 
 const Page = styled(Pagination)`
   color: white;
   margin: 0 auto;
   position: absolute;
-  margin-left: 16vw;
+  width: 50%;
+  margin-left: 25%;
   height: 10px;
-  top: 88%;
+  top: 90%;
   .ant-pagination-simple-pager input {
     background-color: transparent !important;
   }
@@ -252,4 +518,76 @@ const Page = styled(Pagination)`
   .ant-pagination-next .ant-pagination-item-link {
     color: white;
   }
+`;
+
+const CubeInfoWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  background-color: transparent;
+  width: 90%;
+  height: 90%;
+  margin-left: 5%;
+  font-family: "GalacticFont";
+  color: white;
+  font-size: 1.2vw;
+  border: 2px solid white;
+  border-radius: 15px;
+`;
+
+const CubeInfo = styled.div`
+  display: inline-block;
+  text-align: left;
+  width: 70%;
+  height: 55%;
+  margin-top: -2vh;
+  margin-bottom: 2vh;
+`;
+
+const SellCubeButton = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: ${(props) => props.width};
+  height: 6.5vh;
+  border: 1.5px solid white;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.25s ease-in-out, color 0.25s ease-in-out;
+  :hover {
+    background-color: white;
+    color: black;
+  }
+`;
+
+const PriceInputWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 60%;
+  height: 6.5vh;
+  flex-direction: row;
+`;
+
+const PriceInput = styled.input`
+  width: 40%;
+  height: 100%;
+  border: none;
+  background-color: transparent;
+  outline: none;
+  color: white;
+  font-size: 1.2vw;
+  padding-left: 15px;
+  padding-right: 15px;
+  font-family: "GalacticFont";
+  appearance: none;
+`;
+
+const StyledCheck = styled(CheckCircleOutlined)`
+  cursor: pointer;
+  font-size: 28px;
+  z-index: ${(props) => (props.valid ? "1" : "-1")};
+  opacity: ${(props) => (props.valid ? "1" : "0.3")};
 `;

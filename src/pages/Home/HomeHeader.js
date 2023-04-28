@@ -3,9 +3,12 @@ import styled from "styled-components";
 import { ethers } from "ethers";
 import logo from "../../images/GalacticMintersLogo.png";
 import { useNavigate } from "react-router-dom";
-
+import { db } from "../../firebase";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import { useAccountAddress } from "../../contexts/AccountAddrContext";
 
 const HomeHeader = (props) => {
+  const { accountAddress, setAccountAddress } = useAccountAddress();
   const navigate = useNavigate();
   const setUserConnect = props.setUserConnect;
   const handleConnect = async () => {
@@ -19,13 +22,19 @@ const HomeHeader = (props) => {
       signer = await provider.getSigner();
 
       if (signer != null) {
-        console.log(signer.getAddress());
+        const address = await signer.getAddress();
+        setAccountAddress(address);
+        const playerDocRef = doc(db, "players", address);
+        const playerDocSnapshot = await getDoc(playerDocRef);
+        if (!playerDocSnapshot.exists()) {
+          await setDoc(playerDocRef, {});
+        }
         setUserConnect(true);
       }
     }
   };
 
-  return(
+  return (
     <>
       <HeaderWrapper>
         <Logo src={logo}></Logo>

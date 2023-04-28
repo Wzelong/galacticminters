@@ -5,7 +5,9 @@ const PlanetName = (props) => {
   const showPlanetName = props.showPlanetName;
   return (
     <>
-      <PlanetNameWrapper showPlanetName={showPlanetName}>Silicon</PlanetNameWrapper>
+      <PlanetNameWrapper showPlanetName={showPlanetName}>
+        Silicon
+      </PlanetNameWrapper>
     </>
   );
 };
@@ -24,7 +26,7 @@ const PlanetNameWrapper = styled.div`
   height: 5vh;
   font-family: "GalacticFont";
   color: white;
-  opacity: ${props => props.showPlanetName ? "0.6" : "0"};
+  opacity: ${(props) => (props.showPlanetName ? "0.6" : "0")};
   transition: opacity 1s ease-in-out;
   z-index: 2;
   font-size: 1.5vw;

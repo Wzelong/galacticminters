@@ -5,21 +5,18 @@ import { ForkOutlined } from "@ant-design/icons";
 import { Carousel } from "antd";
 const name = "Silicon";
 const ResourceDisplay = (props) => {
-  const [display, setDisplay] = useState("none");
   const [opacity, setOpacity] = useState(0);
 
   useEffect(() => {
     if (props.planetClicked) {
-      setDisplay("block");
-      setTimeout(() => setOpacity(1), 100);
+      setOpacity(1);
     } else {
       setOpacity(0);
-      setTimeout(() => setDisplay("none"), 1200);
     }
   }, [props.planetClicked]);
   return (
     <>
-      <ResourceWrapper display={display} opacity={opacity}>
+      <ResourceWrapper opacity={opacity}>
         <StyledSlider>
           <Slide>
             <MaterialName>SI</MaterialName>
@@ -29,11 +26,29 @@ const ResourceDisplay = (props) => {
           <Slide>
             <PlanetDescription>
               <h2>Planet {name}</h2>
-              <ul style={{textAlign: "left", textTransform: "uppercase", lineHeight:"29px"}}>
-                <li>Geography: Crystalline formations and sandy deserts; blue-grey color palette reflecting silicon natural hue.</li>
-                <li>Meteorology: Electrical storms fueled by silicon-rich atmosphere; spectacular light displays.</li>
-                <li>Biology: Life forms utilizing silicon as primary structural component; exotic flora and fauna.</li>
-                <li>Civilization: Advanced society harnessing abundant silicon resources; innovative technologies in various domains.</li>
+              <ul
+                style={{
+                  textAlign: "left",
+                  textTransform: "uppercase",
+                  lineHeight: "29px",
+                }}
+              >
+                <li>
+                  Geography: Crystalline formations and sandy deserts; blue-grey
+                  color palette reflecting silicon natural hue.
+                </li>
+                <li>
+                  Meteorology: Electrical storms fueled by silicon-rich
+                  atmosphere; spectacular light displays.
+                </li>
+                <li>
+                  Biology: Life forms utilizing silicon as primary structural
+                  component; exotic flora and fauna.
+                </li>
+                <li>
+                  Civilization: Advanced society harnessing abundant silicon
+                  resources; innovative technologies in various domains.
+                </li>
               </ul>
             </PlanetDescription>
           </Slide>
@@ -52,8 +67,8 @@ const ResourceWrapper = styled.div`
   top: 15%;
   height: 80%;
   width: 40%;
-  opacity: ${props => props.opacity};
-  display: ${props => props.display};
+  opacity: ${(props) => props.opacity};
+  display: block;
   border: 2.5px solid black;
   border-radius: 15px;
   transition: opacity 0.5s ease-in-out;
@@ -98,7 +113,7 @@ const StyledFork = styled(ForkOutlined)`
   font-size: 40px;
   color: white;
   transform: translateY(-180px);
-  transition: opacity 0.2s ease-in-out ;
+  transition: opacity 0.2s ease-in-out;
   :hover {
     cursor: pointer;
     opacity: 0.6;
@@ -116,4 +131,4 @@ const PlanetDescription = styled.div`
   margin-left: 10%;
   margin-top: 15%;
   text-align: center;
-`; 
+`;
