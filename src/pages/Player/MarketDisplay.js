@@ -63,6 +63,10 @@ const MarketDisplay = (props) => {
     console.log("screenshotPlaceHolder");
   };
 
+  const HandleBuyCube = async () => {
+    console.log("HandleBuyCube");
+  };
+
   return (
     <>
       <CubeWrapper opacity={opacity}>
@@ -122,7 +126,9 @@ const MarketDisplay = (props) => {
                       </p>
                       <p>&bull; Price: {marketCubes[cubeClickedIndex].price}</p>
                     </CubeInfo>
-                    <BuyCubeButton width={"25%"}>Buy</BuyCubeButton>
+                    <BuyCubeButton width={"25%"} onCLick={HandleBuyCube}>
+                      Buy
+                    </BuyCubeButton>
                   </>
                 )}
               </CubeInfoWrapper>
