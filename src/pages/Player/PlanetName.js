@@ -3,10 +3,11 @@ import styled from "styled-components";
 
 const PlanetName = (props) => {
   const showPlanetName = props.showPlanetName;
+  const name = props.name;
   return (
     <>
       <PlanetNameWrapper showPlanetName={showPlanetName}>
-        Silicon
+        {name}
       </PlanetNameWrapper>
     </>
   );

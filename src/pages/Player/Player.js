@@ -1,4 +1,4 @@
-import { React, useRef, useState } from "react";
+import { React, useRef, useState, useEffect } from "react";
 import styled from "styled-components";
 import Spline from "@splinetool/react-spline";
 import PlayerHeader from "./PlayerHeader";
@@ -6,9 +6,22 @@ import ResourceDisplay from "./ResourceDisplay";
 import CubeDisplay from "./CubeDisplay";
 import PlanetName from "./PlanetName";
 import MarketDisplay from "./MarketDisplay";
+import { db } from "../../firebase";
+import {
+  doc,
+  getDocs,
+  getDoc,
+  updateDoc,
+  setDoc,
+  increment,
+  query,
+  where,
+  collection,
+} from "firebase/firestore";
 
 const Player = (props) => {
-  const setSceneLoaded = props.setSceneLoaded;
+  const { setSceneLoaded, setDisplayGalaxy, planetID } = props;
+  const [planetData, setPlanetData] = useState({});
   const [planetClicked, setPlanetClicked] = useState(false);
   const [cubeClicked, setCubeClicked] = useState(false);
   const [marketClicked, setMarketClicked] = useState(false);
@@ -29,6 +42,18 @@ const Player = (props) => {
     setSceneLoaded(true);
   }
 
+  useEffect(() => {
+    getPlanet();
+  }, [planetID]);
+
+  const getPlanet = async () => {
+    const planetRef = doc(db, "planets", planetID);
+    const planetSnap = await getDoc(planetRef);
+    if (planetSnap.exists()) {
+      setPlanetData(planetSnap.data());
+    }
+  };
+
   return (
     <>
       <Body>
@@ -43,17 +68,18 @@ const Player = (props) => {
           setMarketClicked={setMarketClicked}
           setShowPlanetName={setShowPlanetName}
           setRender={setRender}
+          setDisplayGalaxy={setDisplayGalaxy}
         />
-        <Spline
-          scene="https://prod.spline.design/iYAOxeIY3PMVRSDv/scene.splinecode"
-          onLoad={onLoad}
-        />
+        <Spline scene={planetData.scene} onLoad={onLoad} />
         {render === "planet" && (
-          <ResourceDisplay planetClicked={planetClicked} />
+          <ResourceDisplay
+            planetClicked={planetClicked}
+            planetData={planetData}
+          />
         )}
         {render === "cube" && <CubeDisplay cubeClicked={cubeClicked} />}
         {render === "market" && <MarketDisplay marketClicked={marketClicked} />}
-        <PlanetName showPlanetName={showPlanetName} />
+        <PlanetName showPlanetName={showPlanetName} name={planetData.name} />
       </Body>
     </>
   );

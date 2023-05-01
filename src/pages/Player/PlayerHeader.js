@@ -21,6 +21,7 @@ const PlayerHeader = (props) => {
     enterMarket,
     leave,
     setRender,
+    setDisplayGalaxy,
   } = props;
 
   function handleClick(stateNum) {
@@ -63,7 +64,7 @@ const PlayerHeader = (props) => {
         setTimeout(() => {
           setPlanetClicked(true);
           setRender("planet");
-        }, 500);
+        }, 1000);
         break;
       case 3: // enter spaceship
         enterSpaceship.current.emitEvent("mouseDown");
@@ -95,8 +96,7 @@ const PlayerHeader = (props) => {
         <Logo
           src={logo}
           onClick={() => {
-            navigate("/");
-            window.location.reload();
+            setDisplayGalaxy(true);
           }}
         />
         <Icon

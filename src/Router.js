@@ -5,22 +5,31 @@ import Player from "./pages/Player/Player";
 import Loading from "./Loading";
 import GlobalFonts from "./fonts/fonts";
 import { useAccountAddress } from "./contexts/AccountAddrContext";
+import Galaxy from "./pages/Galaxy/Galaxy";
+import { generateStars } from "./pages/Galaxy/generateStars";
+import AddData from "./AddData";
+import { ethers } from "ethers";
 
+const stars = generateStars(2000);
 const Router = () => {
-  const [userConnect, setUserConnect] = useState(false);
+  const [userConnect, setUserConnect] = useState(null);
+  const [planetID, setPlanetID] = useState("0");
+  const [displayGalaxy, setDisplayGalaxy] = useState(false);
   const [sceneLoaded, setSceneLoaded] = useState(false);
-  const [loadingPercentage, setLoadingPercentage] = useState(0);
+  const [loading, setLoading] = useState(true);
   const { accountAddress, setAccountAddress } = useAccountAddress();
 
   useEffect(() => {
     const checkConnection = async () => {
       if (window.ethereum) {
-        const accounts = await window.ethereum.request({
-          method: "eth_accounts",
-        });
-        if (accounts.length > 0) {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+
+        if (signer != null) {
+          const address = await signer.getAddress();
+          setAccountAddress(address);
           setUserConnect(true);
-          setAccountAddress(accounts[0]);
+          setSceneLoaded(false);
         } else {
           setUserConnect(false);
         }
@@ -28,19 +37,6 @@ const Router = () => {
     };
     checkConnection();
   }, [setUserConnect]);
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setLoadingPercentage((prevPercentage) => {
-        if (prevPercentage < 88) {
-          return prevPercentage + 1;
-        } else {
-          clearInterval(interval);
-          return 100;
-        }
-      });
-    }, 100);
-    return () => clearInterval(interval);
-  }, []);
 
   return (
     <BrowserRouter>
@@ -50,18 +46,35 @@ const Router = () => {
           path="/"
           element={
             <>
-              {/*<Loading loadingPercentage={loadingPercentage} />*/}
-              {userConnect ? (
-                <Player setSceneLoaded={setSceneLoaded} />
-              ) : (
-                <Home
-                  setUserConnect={setUserConnect}
-                  setSceneLoaded={setSceneLoaded}
-                />
-              )}
+              {<Loading sceneLoaded={sceneLoaded} />}
+              {userConnect !== null &&
+                (userConnect ? (
+                  displayGalaxy ? (
+                    <Galaxy
+                      stars={stars}
+                      setDisplayGalaxy={setDisplayGalaxy}
+                      setPlanetID={setPlanetID}
+                      setSceneLoaded={setSceneLoaded}
+                    />
+                  ) : (
+                    <Player
+                      setSceneLoaded={setSceneLoaded}
+                      setDisplayGalaxy={setDisplayGalaxy}
+                      planetID={planetID}
+                    />
+                  )
+                ) : (
+                  <Home
+                    setUserConnect={setUserConnect}
+                    setSceneLoaded={setSceneLoaded}
+                  />
+                ))}
+
+              {/*<AddData />*/}
             </>
           }
         />
+        <Route path="/add" element={<AddData />} />
         <Route path="*" element={<Navigate to="/" replace />} />
         <Route render={() => <Navigate to="/" />} />
       </Routes>

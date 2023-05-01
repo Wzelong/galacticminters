@@ -1,11 +1,43 @@
 import { React, useState, useEffect } from "react";
 import styled from "styled-components";
-import silicon from "../../images/silicon.png";
-import { ForkOutlined } from "@ant-design/icons";
+import { ForkOutlined, LoadingOutlined } from "@ant-design/icons";
 import { Carousel } from "antd";
-const name = "Silicon";
+import { db } from "../../firebase";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import { useAccountAddress } from "../../contexts/AccountAddrContext";
+
 const ResourceDisplay = (props) => {
+  const { accountAddress } = useAccountAddress();
+  const planetData = props.planetData;
   const [opacity, setOpacity] = useState(0);
+  const [owned, setOwned] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const addResource = async () => {
+    setLoading(true);
+    const ref = doc(
+      db,
+      "players",
+      accountAddress,
+      "resources",
+      planetData.id.toString()
+    );
+    await setDoc(ref, planetData.material);
+    getResource();
+    setLoading(false);
+  };
+
+  const getResource = async () => {
+    const ref = doc(
+      db,
+      "players",
+      accountAddress,
+      "resources",
+      planetData.id.toString()
+    );
+    const docSnap = await getDoc(ref);
+    setOwned(docSnap.exists());
+  };
 
   useEffect(() => {
     if (props.planetClicked) {
@@ -13,19 +45,29 @@ const ResourceDisplay = (props) => {
     } else {
       setOpacity(0);
     }
+    getResource();
   }, [props.planetClicked]);
+
   return (
     <>
       <ResourceWrapper opacity={opacity}>
         <StyledSlider>
           <Slide>
-            <MaterialName>SI</MaterialName>
-            <MaterialImg src={silicon} />
-            <StyledFork />
+            <MaterialName>{planetData.material.symbol}</MaterialName>
+            <MaterialImg src={planetData.material.image} />
+            {!loading ? (
+              owned ? (
+                <OwnedText>Owned</OwnedText>
+              ) : (
+                <StyledFork onClick={addResource} />
+              )
+            ) : (
+              <LoadingOutlined />
+            )}
           </Slide>
           <Slide>
             <PlanetDescription>
-              <h2>Planet {name}</h2>
+              <h2>Planet {planetData.name}</h2>
               <ul
                 style={{
                   textAlign: "left",
@@ -33,22 +75,10 @@ const ResourceDisplay = (props) => {
                   lineHeight: "29px",
                 }}
               >
-                <li>
-                  Geography: Crystalline formations and sandy deserts; blue-grey
-                  color palette reflecting silicon natural hue.
-                </li>
-                <li>
-                  Meteorology: Electrical storms fueled by silicon-rich
-                  atmosphere; spectacular light displays.
-                </li>
-                <li>
-                  Biology: Life forms utilizing silicon as primary structural
-                  component; exotic flora and fauna.
-                </li>
-                <li>
-                  Civilization: Advanced society harnessing abundant silicon
-                  resources; innovative technologies in various domains.
-                </li>
+                <li>Geography: {planetData.info.geography}</li>
+                <li>Meteorology: {planetData.info.meteorology}</li>
+                <li>Biology: {planetData.info.biology}</li>
+                <li>Civilization: {planetData.info.civilization}</li>
               </ul>
             </PlanetDescription>
           </Slide>
@@ -88,6 +118,7 @@ const MaterialName = styled.div`
   transform: translateY(60px);
   height: 5px;
   margin-top: 5vh;
+  margin-bottom: 3vh;
 `;
 
 const StyledSlider = styled(Carousel)`
@@ -120,9 +151,15 @@ const StyledFork = styled(ForkOutlined)`
   }
 `;
 
+const StyledLoading = styled(LoadingOutlined)`
+  font-size: 40px;
+  color: white;
+  transform: translateY(-180px);
+`;
+
 const PlanetDescription = styled.div`
   font-family: "GalacticFont";
-  font-size: 1vw;
+  font-size: 0.9vw;
   cursor: default;
   color: white;
   z-index: 3;
@@ -131,4 +168,12 @@ const PlanetDescription = styled.div`
   margin-left: 10%;
   margin-top: 15%;
   text-align: center;
+`;
+
+const OwnedText = styled.div`
+  font-family: "GalacticFont";
+  font-size: 1.5vw;
+  color: white;
+  cursor: default;
+  transform: translateY(-180px);
 `;

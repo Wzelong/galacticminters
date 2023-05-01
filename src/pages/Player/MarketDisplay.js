@@ -126,7 +126,7 @@ const MarketDisplay = (props) => {
                       </p>
                       <p>&bull; Price: {marketCubes[cubeClickedIndex].price}</p>
                     </CubeInfo>
-                    <BuyCubeButton width={"25%"} onCLick={HandleBuyCube}>
+                    <BuyCubeButton width={"25%"} onClick={HandleBuyCube}>
                       Buy
                     </BuyCubeButton>
                   </>

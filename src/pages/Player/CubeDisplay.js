@@ -1,4 +1,4 @@
-import { React, useState, useEffect, useRef, Suspense } from "react";
+import { React, useState, useEffect, Suspense } from "react";
 import styled from "styled-components";
 import silicon from "../../images/silicon.png";
 import gold from "../../images/gold.png";
@@ -31,6 +31,7 @@ import {
   collection,
 } from "firebase/firestore";
 
+/*
 const materials = [
   { src: silicon, caption: "SI", color: "rgb(40, 40, 43)" },
   { src: gold, caption: "AU", color: "rgb(255, 192, 0)" },
@@ -42,6 +43,7 @@ const materials = [
   { src: ti, caption: "TI", color: "rgb(159, 226, 191)" },
   { src: k, caption: "K", color: "rgb(189,0,255)" },
 ];
+*/
 
 const CubeDisplay = (props) => {
   const cubePageMax = 6;
@@ -49,9 +51,8 @@ const CubeDisplay = (props) => {
   const [opacity, setOpacity] = useState(0);
   const [playerCubes, setPlayerCubes] = useState([]);
   const [cubeColor, setCubeColor] = useState("rgb(113, 121, 126)");
-  const [materialClicked, setMaterialClicked] = useState(
-    materials.map(() => false)
-  );
+  const [materials, setMaterials] = useState([]);
+  const [materialClicked, setMaterialClicked] = useState(null);
   const [validCraft, setValidCraft] = useState(false);
   const [disableCraft, setDisableCraft] = useState(false);
   const [takeScreenshot, setTakeScreenshot] = useState(null);
@@ -69,11 +70,13 @@ const CubeDisplay = (props) => {
       setOpacity(0);
     }
     getPlayerCubes();
+    getResource();
   }, [props.cubeClicked]);
 
   const handlePageChange = (page) => {
     setPageIndex([(page - 1) * cubePageMax, page * cubePageMax]);
   };
+
   const getPlayerCubes = async () => {
     const q = query(
       collection(db, "cubes"),
@@ -83,6 +86,15 @@ const CubeDisplay = (props) => {
       setPlayerCubes(querySnapshot.docs.map((doc) => doc.data()));
     });
   };
+
+  const getResource = async () => {
+    const q = query(collection(db, "players", accountAddress, "resources"));
+    await getDocs(q).then((querySnapshot) => {
+      setMaterials(querySnapshot.docs.map((doc) => doc.data()));
+      setMaterialClicked(querySnapshot.docs.map((doc) => false));
+    });
+  };
+
   const handleMaterialClick = (index) => {
     setCubeClickedIndex(-1);
     setSelling(false);
@@ -99,7 +111,7 @@ const CubeDisplay = (props) => {
     for (let i = 0; i < newClickedState.length; i++) {
       if (newClickedState[i]) {
         colors.push(materials[i].color);
-        materialList.push(materials[i].caption);
+        materialList.push(materials[i].symbol);
       }
     }
     if (colors.length > 0) {
@@ -194,16 +206,16 @@ const CubeDisplay = (props) => {
         >
           <Slide height={"80vh"}>
             <ImageList>
-              {materials.map((image, index) => {
+              {materials.map((obj, index) => {
                 return (
                   <ImageContainer
                     key={index}
                     onClick={() => handleMaterialClick(index)}
                     clicked={materialClicked[index]}
                   >
-                    <MaterialImg src={image.src} />
+                    <MaterialImg src={obj.image} />
                     <Caption marginTop={"-2rem"} fontFamily={"GalacticFont"}>
-                      {image.caption}
+                      {obj.symbol}
                     </Caption>
                   </ImageContainer>
                 );
