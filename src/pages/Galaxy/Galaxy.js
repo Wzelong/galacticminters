@@ -1,27 +1,87 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import styled from "styled-components";
 import logo from "../../images/PlayerHomeLogo.png";
-
+import { useAccountAddress } from "../../contexts/AccountAddrContext";
+import { db } from "../../firebase";
+import { doc, setDoc, getDoc, onSnapshot } from "firebase/firestore";
+const formatCooldownTime = (time) => {
+  const minutes = Math.floor(time / 1000 / 60);
+  const seconds = Math.floor((time / 1000) % 60);
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+};
 const Galaxy = (props) => {
   const setDisplayGalaxy = props.setDisplayGalaxy;
   const setPlanetID = props.setPlanetID;
   const setSceneLoaded = props.setSceneLoaded;
-  const handleJump = () => {
+  const { accountAddress } = useAccountAddress();
+  const [cooldownTime, setCooldownTime] = useState(null);
+  const handleJump = async () => {
     setDisplayGalaxy(false);
     const number = Math.floor(Math.random() * 9).toString();
     setPlanetID(number);
     setSceneLoaded(false);
+    const timestamp = Date.now();
+    const cooldownDocRef = doc(db, "jumpCoolDowns", accountAddress);
+    await setDoc(cooldownDocRef, { timestamp });
   };
+  const listenForCooldownUpdates = () => {
+    const cooldownDocRef = doc(db, "jumpCoolDowns", accountAddress);
+    const unsubscribe = onSnapshot(cooldownDocRef, (docSnapshot) => {
+      if (docSnapshot.exists()) {
+        const data = docSnapshot.data();
+        const elapsedTime = Date.now() - data.timestamp;
+        const cooldownDuration = 60 * 1000; // 5 minutes
+        if (elapsedTime < cooldownDuration) {
+          setCooldownTime(cooldownDuration - elapsedTime);
+        } else {
+          setCooldownTime(0);
+        }
+      }
+    });
+
+    return unsubscribe;
+  };
+  useEffect(() => {
+    const unsubscribe = listenForCooldownUpdates();
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+  useEffect(() => {
+    if (cooldownTime === 0) {
+      return;
+    }
+    const timer = setInterval(() => {
+      setCooldownTime((prevCooldownTime) => {
+        if (prevCooldownTime > 0) {
+          return prevCooldownTime - 1000;
+        } else {
+          clearInterval(timer);
+          return 0;
+        }
+      });
+    }, 1000);
+
+    return () => {
+      clearInterval(timer);
+    };
+  }, [cooldownTime]);
   return (
     <div style={{ width: "100vw", height: "100vh" }}>
       <HeaderWrapper>
         <Logo src={logo}></Logo>
-        <HeaderButton right={"5vw"} onClick={() => handleJump()}>
-          Jump
-        </HeaderButton>
+        {cooldownTime !== null ? (
+          cooldownTime > 0 ? (
+            <CoolDown>{formatCooldownTime(cooldownTime)}</CoolDown>
+          ) : (
+            <HeaderButton right={"5vw"} onClick={() => handleJump()}>
+              Jump
+            </HeaderButton>
+          )
+        ) : null}
       </HeaderWrapper>
       <Canvas
         camera={{ position: [0, 0, 130], fov: 60 }}
@@ -190,6 +250,22 @@ const HeaderButton = styled.div`
     color: black;
   }
   cursor: pointer;
+`;
+
+const CoolDown = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  position: absolute;
+  right: 5vw;
+  top: 50px;
+  font-family: "GalacticFont";
+  font-size: 30px;
+  font-weight: 700;
+  padding: 7px 7px;
+  text-align: center;
+  cursor: default;
 `;
 
 const IconWrapper = styled.div`

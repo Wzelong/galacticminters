@@ -19,6 +19,7 @@ import {
   query,
   where,
   collection,
+  onSnapshot,
 } from "firebase/firestore";
 
 const MarketDisplay = (props) => {
@@ -29,6 +30,7 @@ const MarketDisplay = (props) => {
   const [cubeColor, setCubeColor] = useState("rgb(113, 121, 126)");
   const [pageIndex, setPageIndex] = useState([0, cubePageMax]);
   const [cubeClickedIndex, setCubeClickedIndex] = useState(-1);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (props.marketClicked) {
@@ -36,17 +38,25 @@ const MarketDisplay = (props) => {
     } else {
       setOpacity(0);
     }
-    getMarketCubes();
+    const unsubscribe = getMarketCubes();
+
+    // Clean up the listener when the component is unmounted
+    return () => {
+      unsubscribe();
+    };
   }, [props.marketClicked]);
 
   const handlePageChange = (page) => {
     setPageIndex([(page - 1) * cubePageMax, page * cubePageMax]);
   };
-  const getMarketCubes = async () => {
+  const getMarketCubes = () => {
     const q = query(collection(db, "cubes"), where("onSell", "==", true));
-    await getDocs(q).then((querySnapshot) => {
-      setMarketCubes(querySnapshot.docs.map((doc) => doc.data()));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const cubes = querySnapshot.docs.map((doc) => doc.data());
+      cubes.sort((a, b) => a.cubeId - b.cubeId);
+      setMarketCubes(cubes);
     });
+    return unsubscribe;
   };
 
   const handleCubeClick = (index) => {
@@ -59,12 +69,19 @@ const MarketDisplay = (props) => {
     }
   };
 
-  const screenshotPlaceHolder = () => {
-    console.log("screenshotPlaceHolder");
-  };
+  const screenshotPlaceHolder = () => {};
 
-  const HandleBuyCube = async () => {
-    console.log("HandleBuyCube");
+  const handleBuyCube = async () => {
+    setLoading(true);
+    const id = marketCubes[cubeClickedIndex].id.toString();
+    setCubeClickedIndex(-1);
+    const cubeRef = doc(db, "cubes", id);
+    await updateDoc(cubeRef, {
+      owner: accountAddress,
+      onSell: false,
+      price: 0,
+    });
+    setLoading(false);
   };
 
   return (
@@ -126,9 +143,15 @@ const MarketDisplay = (props) => {
                       </p>
                       <p>&bull; Price: {marketCubes[cubeClickedIndex].price}</p>
                     </CubeInfo>
-                    <BuyCubeButton width={"25%"} onClick={HandleBuyCube}>
-                      Buy
-                    </BuyCubeButton>
+                    {marketCubes[cubeClickedIndex].owner !== accountAddress ? (
+                      !loading ? (
+                        <BuyCubeButton width={"25%"} onClick={handleBuyCube}>
+                          Buy
+                        </BuyCubeButton>
+                      ) : (
+                        <LoadingOutlined style={{ fontSize: "40px" }} />
+                      )
+                    ) : null}
                   </>
                 )}
               </CubeInfoWrapper>

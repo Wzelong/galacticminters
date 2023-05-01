@@ -11,10 +11,8 @@ const ResourceDisplay = (props) => {
   const planetData = props.planetData;
   const [opacity, setOpacity] = useState(0);
   const [owned, setOwned] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const addResource = async () => {
-    setLoading(true);
     const ref = doc(
       db,
       "players",
@@ -24,7 +22,6 @@ const ResourceDisplay = (props) => {
     );
     await setDoc(ref, planetData.material);
     getResource();
-    setLoading(false);
   };
 
   const getResource = async () => {
@@ -55,14 +52,10 @@ const ResourceDisplay = (props) => {
           <Slide>
             <MaterialName>{planetData.material.symbol}</MaterialName>
             <MaterialImg src={planetData.material.image} />
-            {!loading ? (
-              owned ? (
-                <OwnedText>Owned</OwnedText>
-              ) : (
-                <StyledFork onClick={addResource} />
-              )
+            {owned ? (
+              <OwnedText>Owned</OwnedText>
             ) : (
-              <LoadingOutlined />
+              <StyledFork onClick={addResource} />
             )}
           </Slide>
           <Slide>
