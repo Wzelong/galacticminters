@@ -22,11 +22,12 @@ const Router = () => {
   useEffect(() => {
     const checkConnection = async () => {
       if (window.ethereum) {
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const signer = await provider.getSigner();
+        const accounts = await window.ethereum.request({
+          method: "eth_accounts",
+        });
 
-        if (signer != null) {
-          const address = await signer.getAddress();
+        if (accounts.length > 0) {
+          const address = accounts[0];
           setAccountAddress(address);
           setUserConnect(true);
           setSceneLoaded(false);

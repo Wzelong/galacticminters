@@ -22,7 +22,7 @@ const HomeHeader = (props) => {
       signer = await provider.getSigner();
 
       if (signer != null) {
-        const address = await signer.getAddress();
+        const address = (await signer.getAddress()).toLowerCase();
         setAccountAddress(address);
         const playerDocRef = doc(db, "players", address);
         const playerDocSnapshot = await getDoc(playerDocRef);
