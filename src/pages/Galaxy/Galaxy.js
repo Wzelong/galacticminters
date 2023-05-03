@@ -1,23 +1,58 @@
 import React, { useRef, useEffect, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import {
+  OrbitControls,
+  Line,
+  Text,
+  Trail,
+  Octahedron,
+  useCursor,
+} from "@react-three/drei";
 import styled from "styled-components";
 import logo from "../../images/PlayerHomeLogo.png";
 import { useAccountAddress } from "../../contexts/AccountAddrContext";
 import { db } from "../../firebase";
-import { doc, setDoc, getDoc, onSnapshot } from "firebase/firestore";
+import {
+  doc,
+  setDoc,
+  onSnapshot,
+  query,
+  collection,
+  getDocs,
+  getDoc,
+} from "firebase/firestore";
+import { generateStars, generatePlayerStars } from "./generateStars";
+import { EffectComposer, Bloom } from "@react-three/postprocessing";
 const formatCooldownTime = (time) => {
   const minutes = Math.floor(time / 1000 / 60);
   const seconds = Math.floor((time / 1000) % 60);
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 };
+const stars = generateStars(2000);
 const Galaxy = (props) => {
   const setDisplayGalaxy = props.setDisplayGalaxy;
   const setPlanetID = props.setPlanetID;
   const setSceneLoaded = props.setSceneLoaded;
   const { accountAddress } = useAccountAddress();
   const [cooldownTime, setCooldownTime] = useState(null);
+  const [playerPlanets, setPlayerPlanets] = useState([]);
+  const [displayPlayerStars, setDisplayPlayerStars] = useState(false);
+  const [playerStars, setPlayerStars] = useState([]);
+  const getPlayerPlanets = async () => {
+    const q = query(collection(db, "players", accountAddress, "planets"));
+    await getDocs(q).then((querySnapshot) => {
+      const stars = generatePlayerStars(
+        querySnapshot.docs.map((doc) => doc.data())
+      );
+      setPlayerStars(stars);
+    });
+  };
+  const handleGoHome = () => {
+    setDisplayGalaxy(false);
+    setPlanetID("0");
+    setSceneLoaded(false);
+  };
   const handleJump = async () => {
     setDisplayGalaxy(false);
     const number = Math.floor(Math.random() * 9).toString();
@@ -26,6 +61,9 @@ const Galaxy = (props) => {
     const timestamp = Date.now();
     const cooldownDocRef = doc(db, "jumpCoolDowns", accountAddress);
     await setDoc(cooldownDocRef, { timestamp });
+    const planetDocRef = doc(db, "players", accountAddress, "planets", number);
+    const planetSnap = await getDoc(doc(db, "planets", number));
+    await setDoc(planetDocRef, planetSnap.data());
   };
   const listenForCooldownUpdates = () => {
     const cooldownDocRef = doc(db, "jumpCoolDowns", accountAddress);
@@ -33,7 +71,7 @@ const Galaxy = (props) => {
       if (docSnapshot.exists()) {
         const data = docSnapshot.data();
         const elapsedTime = Date.now() - data.timestamp;
-        const cooldownDuration = 60 * 1000; // 5 minutes
+        const cooldownDuration = 60 * 1000;
         if (elapsedTime < cooldownDuration) {
           setCooldownTime(cooldownDuration - elapsedTime);
         } else {
@@ -44,8 +82,12 @@ const Galaxy = (props) => {
 
     return unsubscribe;
   };
+  const handleStarClick = () => {
+    setDisplayPlayerStars(!displayPlayerStars);
+  };
   useEffect(() => {
     const unsubscribe = listenForCooldownUpdates();
+    getPlayerPlanets();
     return () => {
       unsubscribe();
     };
@@ -72,7 +114,12 @@ const Galaxy = (props) => {
   return (
     <div style={{ width: "100vw", height: "100vh" }}>
       <HeaderWrapper>
-        <Logo src={logo}></Logo>
+        <Logo src={logo} onClick={handleGoHome}></Logo>
+        {cooldownTime !== null ? (
+          <HeaderButton right={"15vw"} onClick={handleStarClick}>
+            Stars
+          </HeaderButton>
+        ) : null}
         {cooldownTime !== null ? (
           cooldownTime > 0 ? (
             <CoolDown>{formatCooldownTime(cooldownTime)}</CoolDown>
@@ -89,8 +136,27 @@ const Galaxy = (props) => {
       >
         <ambientLight />
         <pointLight position={[10, 10, 10]} />
-        <SpiralGalaxy stars={props.stars} />
-        <OrbitControls enableZoom={false} />
+        {displayPlayerStars ? (
+          <>
+            <PlayerStars
+              stars={playerStars}
+              setDisplayGalaxy={setDisplayGalaxy}
+              setSceneLoaded={setSceneLoaded}
+              setPlanetID={setPlanetID}
+            />
+            <EffectComposer multisampling={8}>
+              <Bloom
+                kernelSize={3}
+                luminanceThreshold={0}
+                luminanceSmoothing={0.4}
+                intensity={0.2}
+              />
+            </EffectComposer>
+          </>
+        ) : (
+          <SpiralGalaxy stars={stars} />
+        )}
+        <OrbitControls maxDistance={180} minDistance={80} />
       </Canvas>
     </div>
   );
@@ -208,6 +274,92 @@ const SpiralGalaxy = (props) => {
     </>
   );
 };
+/*
+const findNearestNeighbor = (index, stars) => {
+  let minDistance = Infinity;
+  let nearestNeighbor = null;
+
+  stars.forEach((star, i) => {
+    if (i === index) return; // skip self
+
+    const dx = star.position[0] - stars[index].position[0];
+    const dy = star.position[1] - stars[index].position[1];
+    const dz = star.position[2] - stars[index].position[2];
+    const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+    if (distance < minDistance) {
+      minDistance = distance;
+      nearestNeighbor = star;
+    }
+  });
+
+  return nearestNeighbor;
+};
+*/
+const PlayerStars = (props) => {
+  const { stars, setDisplayGalaxy, setPlanetID, setSceneLoaded } = props;
+  const starsRef = useRef();
+  const [hovered, setHovered] = useState(false);
+  useCursor(hovered);
+  useEffect(() => {
+    starsRef.current.rotation.x = -Math.PI / 4;
+  }, []);
+
+  useFrame(() => {
+    if (!hovered) {
+      starsRef.current.rotation.z += 0.005;
+    }
+  });
+
+  const handleStarClick = (id) => {
+    setDisplayGalaxy(false);
+    setPlanetID(id);
+    setSceneLoaded(false);
+  };
+
+  return (
+    <group ref={starsRef}>
+      {stars.map((particle, i) => {
+        //const nearestNeighbor = findNearestNeighbor(i, stars);
+        //const points = [particle.position, nearestNeighbor.position];
+        return (
+          <group key={i}>
+            <Trail
+              width={1} // Width of the line
+              color={particle.color} // Color of the line
+              length={50} // Length of the line
+              decay={0.5} // How fast the line fades away
+              local={false} // Wether to use the target's world or local positions
+              stride={0} // Min distance between previous and current point
+              interval={1} // Number of frames to wait before next calculation
+              attenuation={(t) => {
+                return t * t;
+              }}
+            >
+              <Octahedron
+                onPointerOver={() => {
+                  setHovered(true);
+                }}
+                onPointerOut={() => {
+                  setHovered(false);
+                }}
+                onClick={() => {
+                  handleStarClick(particle.id.toString());
+                }}
+                position={particle.position}
+                scale={particle.size}
+                args={[6, 0]}
+              >
+                <meshStandardMaterial color={particle.color} />
+              </Octahedron>
+            </Trail>
+            {/*<Line points={points} color={particle.color} />*/}
+          </group>
+        );
+      })}
+    </group>
+  );
+};
 
 const HeaderWrapper = styled.div`
   position: sticky;
@@ -260,7 +412,7 @@ const CoolDown = styled.div`
   position: absolute;
   right: 5vw;
   top: 50px;
-  font-family: "GalacticFont";
+  font-family: Arial Black, Arial Bold, Gadget, sans-serif;
   font-size: 30px;
   font-weight: 700;
   padding: 7px 7px;

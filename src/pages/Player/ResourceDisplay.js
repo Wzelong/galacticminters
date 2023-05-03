@@ -111,7 +111,8 @@ const MaterialName = styled.div`
   transform: translateY(60px);
   height: 5px;
   margin-top: 5vh;
-  margin-bottom: 3vh;
+  margin-bottom: 1vh;
+  margin-right: 1vw;
 `;
 
 const StyledSlider = styled(Carousel)`
@@ -142,12 +143,6 @@ const StyledFork = styled(ForkOutlined)`
     cursor: pointer;
     opacity: 0.6;
   }
-`;
-
-const StyledLoading = styled(LoadingOutlined)`
-  font-size: 40px;
-  color: white;
-  transform: translateY(-180px);
 `;
 
 const PlanetDescription = styled.div`

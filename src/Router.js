@@ -10,7 +10,6 @@ import { generateStars } from "./pages/Galaxy/generateStars";
 import AddData from "./AddData";
 import { ethers } from "ethers";
 
-const stars = generateStars(2000);
 const Router = () => {
   const [userConnect, setUserConnect] = useState(null);
   const [planetID, setPlanetID] = useState("0");
@@ -18,7 +17,6 @@ const Router = () => {
   const [sceneLoaded, setSceneLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
   const { accountAddress, setAccountAddress } = useAccountAddress();
-
   useEffect(() => {
     const checkConnection = async () => {
       if (window.ethereum) {
@@ -52,7 +50,6 @@ const Router = () => {
                 (userConnect ? (
                   displayGalaxy ? (
                     <Galaxy
-                      stars={stars}
                       setDisplayGalaxy={setDisplayGalaxy}
                       setPlanetID={setPlanetID}
                       setSceneLoaded={setSceneLoaded}

@@ -1,22 +1,9 @@
 import { React, useState, useEffect, Suspense } from "react";
 import styled from "styled-components";
-import silicon from "../../images/silicon.png";
-import gold from "../../images/gold.png";
-import silver from "../../images/silver.png";
-import bi from "../../images/bi.png";
-import cu from "../../images/cu.png";
-import pt from "../../images/pt.png";
-import u from "../../images/u.png";
-import ti from "../../images/ti.png";
-import k from "../../images/k.png";
 import { Carousel, Pagination } from "antd";
 import PreviewCanvas from "./PreviewCanvas";
 import mixbox from "mixbox";
-import {
-  ToolOutlined,
-  LoadingOutlined,
-  CheckCircleOutlined,
-} from "@ant-design/icons";
+import { ToolOutlined, CheckCircleOutlined } from "@ant-design/icons";
 import { useAccountAddress } from "../../contexts/AccountAddrContext";
 import { db } from "../../firebase";
 import {
@@ -29,22 +16,13 @@ import {
   query,
   where,
   collection,
+  onSnapshot,
 } from "firebase/firestore";
-
-/*
-const materials = [
-  { src: silicon, caption: "SI", color: "rgb(40, 40, 43)" },
-  { src: gold, caption: "AU", color: "rgb(255, 192, 0)" },
-  { src: silver, caption: "AG", color: "rgb(222, 222, 222)" },
-  { src: bi, caption: "BI", color: "rgb(250, 160, 160)" },
-  { src: cu, caption: "CU", color: "rgb(184, 115, 51)" },
-  { src: pt, caption: "PT", color: "rgb(135, 206, 235)" },
-  { src: u, caption: "U", color: "rgb(46, 139, 87)" },
-  { src: ti, caption: "TI", color: "rgb(159, 226, 191)" },
-  { src: k, caption: "K", color: "rgb(189,0,255)" },
-];
-*/
-
+const formatCooldownTime = (time) => {
+  const minutes = Math.floor(time / 1000 / 60);
+  const seconds = Math.floor((time / 1000) % 60);
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+};
 const CubeDisplay = (props) => {
   const cubePageMax = 6;
   const { accountAddress } = useAccountAddress();
@@ -56,13 +34,49 @@ const CubeDisplay = (props) => {
   const [validCraft, setValidCraft] = useState(false);
   const [disableCraft, setDisableCraft] = useState(false);
   const [takeScreenshot, setTakeScreenshot] = useState(null);
-  const [craftLoading, setCraftLoading] = useState(false);
   const [pageIndex, setPageIndex] = useState([0, cubePageMax]);
   const [selling, setSelling] = useState(false);
   const [priceValid, setPriceValid] = useState(false);
   const [price, setPrice] = useState("");
   const [cubeMaterial, setCubeMaterial] = useState(null);
   const [cubeClickedIndex, setCubeClickedIndex] = useState(-1);
+  const [cooldownTime, setCooldownTime] = useState(null);
+  const listenForCooldownUpdates = () => {
+    const cooldownDocRef = doc(db, "craftCoolDowns", accountAddress);
+    const unsubscribe = onSnapshot(cooldownDocRef, (docSnapshot) => {
+      if (docSnapshot.exists()) {
+        const data = docSnapshot.data();
+        const elapsedTime = Date.now() - data.timestamp;
+        const cooldownDuration = 60 * 1000;
+        if (elapsedTime < cooldownDuration) {
+          setCooldownTime(cooldownDuration - elapsedTime);
+        } else {
+          setCooldownTime(0);
+        }
+      }
+    });
+
+    return unsubscribe;
+  };
+  useEffect(() => {
+    if (cooldownTime === 0) {
+      return;
+    }
+    const timer = setInterval(() => {
+      setCooldownTime((prevCooldownTime) => {
+        if (prevCooldownTime > 0) {
+          return prevCooldownTime - 1000;
+        } else {
+          clearInterval(timer);
+          return 0;
+        }
+      });
+    }, 1000);
+
+    return () => {
+      clearInterval(timer);
+    };
+  }, [cooldownTime]);
   useEffect(() => {
     if (props.cubeClicked) {
       setOpacity(1);
@@ -71,6 +85,10 @@ const CubeDisplay = (props) => {
     }
     getPlayerCubes();
     getResource();
+    const unsubscribe = listenForCooldownUpdates();
+    return () => {
+      unsubscribe();
+    };
   }, [props.cubeClicked]);
 
   const handlePageChange = (page) => {
@@ -136,7 +154,9 @@ const CubeDisplay = (props) => {
   };
   const craft = async () => {
     if (validCraft) {
-      setCraftLoading(true);
+      const timestamp = Date.now();
+      const cooldownDocRef = doc(db, "craftCoolDowns", accountAddress);
+      await setDoc(cooldownDocRef, { timestamp });
       const color = cubeColor;
       const screenshotURL = await takeScreenshot();
       const cubeId = await getCurrentCubeId();
@@ -153,7 +173,6 @@ const CubeDisplay = (props) => {
       await setDoc(cubeDocRef, cubeData);
       await incrementCubeId();
       getPlayerCubes();
-      setTimeout(() => setCraftLoading(false), 2000);
     }
   };
   const handleInputChange = (e) => {
@@ -258,19 +277,21 @@ const CubeDisplay = (props) => {
         <PreviewScene>
           <StyledSlider width={"100%"}>
             <Slide height={"70vh"}>
-              {craftLoading ? (
-                <IconWrapper valid={true}>
-                  <LoadingOutlined style={{ fontSize: "50px" }} />
-                </IconWrapper>
-              ) : (
-                <IconWrapper
-                  valid={validCraft}
-                  disableCraft={disableCraft}
-                  onClick={craft}
-                >
-                  <ToolOutlined style={{ fontSize: "50px" }} />
-                </IconWrapper>
-              )}
+              {cooldownTime !== null ? (
+                cooldownTime > 0 ? (
+                  <IconWrapper valid={validCraft} disableCraft={disableCraft}>
+                    {formatCooldownTime(cooldownTime)}
+                  </IconWrapper>
+                ) : (
+                  <IconWrapper
+                    valid={validCraft}
+                    disableCraft={disableCraft}
+                    onClick={craft}
+                  >
+                    <ToolOutlined style={{ fontSize: "50px" }} />
+                  </IconWrapper>
+                )
+              ) : null}
               <Suspense>
                 <PreviewCanvas
                   cubeColor={cubeColor}
@@ -506,6 +527,8 @@ const IconWrapper = styled.div`
   color: ${(props) => (props.valid ? "white" : "grey")};
   transition: color 0.15s ease-in-out;
   display: ${(props) => (props.disableCraft ? "none" : "block")};
+  font-family: Arial Black, Arial Bold, Gadget, sans-serif;
+  font-size: 30px;
 
   :hover {
     cursor: ${(props) => (props.valid ? "pointer" : "not-allowed")};
