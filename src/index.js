@@ -1,12 +1,12 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import Router from "./Router";
-import { AccountAddressProvider } from "./contexts/AccountAddrContext";
+import { EtherProvider } from "./contexts/EtherContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <AccountAddressProvider>
+    <EtherProvider>
       <Router />
-    </AccountAddressProvider>
+    </EtherProvider>
   </React.StrictMode>
 );

@@ -4,10 +4,10 @@ import { ForkOutlined, LoadingOutlined } from "@ant-design/icons";
 import { Carousel } from "antd";
 import { db } from "../../firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
-import { useAccountAddress } from "../../contexts/AccountAddrContext";
+import { useEtherContext } from "../../contexts/EtherContext";
 
 const ResourceDisplay = (props) => {
-  const { accountAddress } = useAccountAddress();
+  const { accountAddress } = useEtherContext();
   const planetData = props.planetData;
   const [opacity, setOpacity] = useState(0);
   const [owned, setOwned] = useState(false);

@@ -4,19 +4,30 @@ import Home from "./pages/Home/Home";
 import Player from "./pages/Player/Player";
 import Loading from "./Loading";
 import GlobalFonts from "./fonts/fonts";
-import { useAccountAddress } from "./contexts/AccountAddrContext";
+import { useEtherContext } from "./contexts/EtherContext";
 import Galaxy from "./pages/Galaxy/Galaxy";
-import { generateStars } from "./pages/Galaxy/generateStars";
 import AddData from "./AddData";
 import { ethers } from "ethers";
 
+const CONTRACT_ADDRESS = "0x77dC9e43FB7f260e37264380B063055B6ba9Cd51";
+const abi = [
+  "function mintCube(string memory color, string memory material) public",
+  "function transferCube(uint256 tokenId) public",
+  "function getCubeInfo(uint256 tokenId) public view returns (string memory color, string memory material, address owner)",
+];
 const Router = () => {
   const [userConnect, setUserConnect] = useState(null);
   const [planetID, setPlanetID] = useState("0");
   const [displayGalaxy, setDisplayGalaxy] = useState(false);
   const [sceneLoaded, setSceneLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
-  const { accountAddress, setAccountAddress } = useAccountAddress();
+  const {
+    accountAddress,
+    setAccountAddress,
+    setProvider,
+    setSigner,
+    setContract,
+  } = useEtherContext();
   useEffect(() => {
     const checkConnection = async () => {
       if (window.ethereum) {
@@ -27,6 +38,16 @@ const Router = () => {
         if (accounts.length > 0) {
           const address = accounts[0];
           setAccountAddress(address);
+          const provider = new ethers.BrowserProvider(window.ethereum);
+          setProvider(provider);
+          const signer = await provider.getSigner();
+          const contractWithSigner = new ethers.Contract(
+            CONTRACT_ADDRESS,
+            abi,
+            signer
+          );
+          setContract(contractWithSigner);
+          setSigner(signer);
           setUserConnect(true);
           setSceneLoaded(false);
         } else {

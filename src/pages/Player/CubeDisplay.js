@@ -4,7 +4,7 @@ import { Carousel, Pagination } from "antd";
 import PreviewCanvas from "./PreviewCanvas";
 import mixbox from "mixbox";
 import { ToolOutlined, CheckCircleOutlined } from "@ant-design/icons";
-import { useAccountAddress } from "../../contexts/AccountAddrContext";
+import { useEtherContext } from "../../contexts/EtherContext";
 import { db } from "../../firebase";
 import {
   doc,
@@ -25,7 +25,7 @@ const formatCooldownTime = (time) => {
 };
 const CubeDisplay = (props) => {
   const cubePageMax = 6;
-  const { accountAddress } = useAccountAddress();
+  const { accountAddress, contract } = useEtherContext();
   const [opacity, setOpacity] = useState(0);
   const [playerCubes, setPlayerCubes] = useState([]);
   const [cubeColor, setCubeColor] = useState("rgb(113, 121, 126)");
@@ -47,7 +47,7 @@ const CubeDisplay = (props) => {
       if (docSnapshot.exists()) {
         const data = docSnapshot.data();
         const elapsedTime = Date.now() - data.timestamp;
-        const cooldownDuration = 60 * 1000;
+        const cooldownDuration = 30 * 1000;
         if (elapsedTime < cooldownDuration) {
           setCooldownTime(cooldownDuration - elapsedTime);
         } else {
@@ -150,6 +150,15 @@ const CubeDisplay = (props) => {
     } else {
       setCubeClickedIndex(index);
       setCubeColor(playerCubes[index].color);
+    }
+  };
+  const mintCube = async (color, material) => {
+    try {
+      const result = await contract.mintCube();
+      await result.wait();
+      console.log(result);
+    } catch (err) {
+      console.error("Error calling the smart contract function:", err);
     }
   };
   const craft = async () => {

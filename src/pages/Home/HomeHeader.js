@@ -5,10 +5,17 @@ import logo from "../../images/GalacticMintersLogo.png";
 import { useNavigate } from "react-router-dom";
 import { db } from "../../firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
-import { useAccountAddress } from "../../contexts/AccountAddrContext";
+import { useEtherContext } from "../../contexts/EtherContext";
 
 const HomeHeader = (props) => {
-  const { accountAddress, setAccountAddress } = useAccountAddress();
+  const {
+    accountAddress,
+    setAccountAddress,
+    signer,
+    setSigner,
+    provider,
+    setProvider,
+  } = useEtherContext();
   const navigate = useNavigate();
   const setUserConnect = props.setUserConnect;
   const handleConnect = async () => {
@@ -24,6 +31,8 @@ const HomeHeader = (props) => {
       if (signer != null) {
         const address = (await signer.getAddress()).toLowerCase();
         setAccountAddress(address);
+        setProvider(provider);
+        setSigner(signer);
         const playerDocRef = doc(db, "players", address);
         const playerDocSnapshot = await getDoc(playerDocRef);
         if (!playerDocSnapshot.exists()) {

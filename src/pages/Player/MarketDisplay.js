@@ -1,37 +1,29 @@
-import { React, useState, useEffect, useRef, Suspense } from "react";
+import { React, useState, useEffect, Suspense } from "react";
 import styled from "styled-components";
 import { Carousel, Pagination } from "antd";
 import PreviewCanvas from "./PreviewCanvas";
-import {
-  ToolOutlined,
-  LoadingOutlined,
-  CheckCircleOutlined,
-} from "@ant-design/icons";
-import { useAccountAddress } from "../../contexts/AccountAddrContext";
+import { LoadingOutlined } from "@ant-design/icons";
+import { useEtherContext } from "../../contexts/EtherContext";
 import { db } from "../../firebase";
 import {
   doc,
-  getDocs,
-  getDoc,
   updateDoc,
-  setDoc,
-  increment,
   query,
   where,
   collection,
   onSnapshot,
 } from "firebase/firestore";
+import { ethers } from "ethers";
 
 const MarketDisplay = (props) => {
   const cubePageMax = 8;
-  const { accountAddress } = useAccountAddress();
+  const { accountAddress, signer, provider, contract } = useEtherContext();
   const [opacity, setOpacity] = useState(0);
   const [marketCubes, setMarketCubes] = useState([]);
   const [cubeColor, setCubeColor] = useState("rgb(113, 121, 126)");
   const [pageIndex, setPageIndex] = useState([0, cubePageMax]);
   const [cubeClickedIndex, setCubeClickedIndex] = useState(-1);
   const [loading, setLoading] = useState(false);
-
   useEffect(() => {
     if (props.marketClicked) {
       setOpacity(1);
@@ -71,16 +63,36 @@ const MarketDisplay = (props) => {
 
   const screenshotPlaceHolder = () => {};
 
+  const transferCube = async (id) => {
+    try {
+      const result = await contract.transferCube(id);
+      await result.wait();
+    } catch (err) {
+      console.error("Error calling the smart contract function:", err);
+    }
+  };
   const handleBuyCube = async () => {
     setLoading(true);
     const id = marketCubes[cubeClickedIndex].id.toString();
-    setCubeClickedIndex(-1);
-    const cubeRef = doc(db, "cubes", id);
-    await updateDoc(cubeRef, {
-      owner: accountAddress,
-      onSell: false,
-      price: 0,
-    });
+    const price = marketCubes[cubeClickedIndex].price.split(" ")[0];
+    const sellerAddress = marketCubes[cubeClickedIndex].owner;
+    try {
+      const tx = await signer.sendTransaction({
+        to: sellerAddress,
+        value: ethers.parseEther(price),
+      });
+      await tx.wait();
+      console.log("Transaction successful!");
+      setCubeClickedIndex(-1);
+      const cubeRef = doc(db, "cubes", id);
+      await updateDoc(cubeRef, {
+        owner: accountAddress,
+        onSell: false,
+        price: 0,
+      });
+    } catch (err) {
+      console.log("Transaction failed!");
+    }
     setLoading(false);
   };
 

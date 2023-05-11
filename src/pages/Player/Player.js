@@ -7,21 +7,11 @@ import CubeDisplay from "./CubeDisplay";
 import PlanetName from "./PlanetName";
 import MarketDisplay from "./MarketDisplay";
 import { db } from "../../firebase";
-import {
-  doc,
-  getDocs,
-  getDoc,
-  updateDoc,
-  setDoc,
-  increment,
-  query,
-  where,
-  collection,
-} from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 
 const Player = (props) => {
   const { setSceneLoaded, setDisplayGalaxy, planetID } = props;
-  const [planetData, setPlanetData] = useState({});
+  const [planetData, setPlanetData] = useState(null);
   const [planetClicked, setPlanetClicked] = useState(false);
   const [cubeClicked, setCubeClicked] = useState(false);
   const [marketClicked, setMarketClicked] = useState(false);
@@ -70,7 +60,7 @@ const Player = (props) => {
           setRender={setRender}
           setDisplayGalaxy={setDisplayGalaxy}
         />
-        <Spline scene={planetData.scene} onLoad={onLoad} />
+        {planetData && <Spline scene={planetData.scene} onLoad={onLoad} />}
         {render === "planet" && (
           <ResourceDisplay
             planetClicked={planetClicked}
@@ -79,7 +69,9 @@ const Player = (props) => {
         )}
         {render === "cube" && <CubeDisplay cubeClicked={cubeClicked} />}
         {render === "market" && <MarketDisplay marketClicked={marketClicked} />}
-        <PlanetName showPlanetName={showPlanetName} name={planetData.name} />
+        {planetData && (
+          <PlanetName showPlanetName={showPlanetName} name={planetData.name} />
+        )}
       </Body>
     </>
   );

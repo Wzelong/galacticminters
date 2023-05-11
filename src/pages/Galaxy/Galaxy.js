@@ -11,7 +11,7 @@ import {
 } from "@react-three/drei";
 import styled from "styled-components";
 import logo from "../../images/PlayerHomeLogo.png";
-import { useAccountAddress } from "../../contexts/AccountAddrContext";
+import { useEtherContext } from "../../contexts/EtherContext";
 import { db } from "../../firebase";
 import {
   doc,
@@ -34,7 +34,7 @@ const Galaxy = (props) => {
   const setDisplayGalaxy = props.setDisplayGalaxy;
   const setPlanetID = props.setPlanetID;
   const setSceneLoaded = props.setSceneLoaded;
-  const { accountAddress } = useAccountAddress();
+  const { accountAddress } = useEtherContext();
   const [cooldownTime, setCooldownTime] = useState(null);
   const [playerPlanets, setPlayerPlanets] = useState([]);
   const [displayPlayerStars, setDisplayPlayerStars] = useState(false);
@@ -55,7 +55,7 @@ const Galaxy = (props) => {
   };
   const handleJump = async () => {
     setDisplayGalaxy(false);
-    const number = Math.floor(Math.random() * 9).toString();
+    const number = Math.floor(Math.random() * 8 + 1).toString();
     setPlanetID(number);
     setSceneLoaded(false);
     const timestamp = Date.now();
@@ -71,7 +71,7 @@ const Galaxy = (props) => {
       if (docSnapshot.exists()) {
         const data = docSnapshot.data();
         const elapsedTime = Date.now() - data.timestamp;
-        const cooldownDuration = 60 * 1000;
+        const cooldownDuration = 30 * 1000;
         if (elapsedTime < cooldownDuration) {
           setCooldownTime(cooldownDuration - elapsedTime);
         } else {
@@ -149,7 +149,7 @@ const Galaxy = (props) => {
                 kernelSize={3}
                 luminanceThreshold={0}
                 luminanceSmoothing={0.4}
-                intensity={0.2}
+                intensity={0.6}
               />
             </EffectComposer>
           </>
