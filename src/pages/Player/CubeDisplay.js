@@ -154,7 +154,7 @@ const CubeDisplay = (props) => {
   };
   const mintCube = async (color, material) => {
     try {
-      const result = await contract.mintCube();
+      const result = await contract.mintCube(color, material);
       await result.wait();
       console.log(result);
     } catch (err) {
