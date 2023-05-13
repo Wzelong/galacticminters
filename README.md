@@ -40,3 +40,5 @@ Galactic Minters’ marketing strategy promotes the game’s unique exploration,
 ## Conclusion
 
 Galactic Minters is an innovative decentralized web application that combines exploration, resource management, and NFT crafting to create a unique gaming experience. By harnessing the power of blockchain technology, the game aims to build a vibrant, engaging, and secure platform for players to explore, collaborate, and trade. With a well-executed development plan and marketing strategy, Galactic Minters has the potential to become a popular and successful addition to the NFT gaming market.
+
+## Check our Project Report: https://firebasestorage.googleapis.com/v0/b/galacticminters.appspot.com/o/CS639_Final_Report.pdf?alt=media&token=776f02b8-ad56-4fa9-8500-6d6a6bc1820d
