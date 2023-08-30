@@ -2,6 +2,8 @@
 
 Galactic Minters is a decentralized web application that combines elements of exploration, resource management, and crafting of unique Non-Fungible Tokens (NFTs). Set in a vast, procedurally generated galaxy, players embark on a journey to discover new planets, gather precious resources, and craft one-of-a-kind energy cores, known as Galactic Cubes. These cubes, each with their unique appearance, are remnants of an ancient galactic civilization and can be installed in spaceships to enhance their capabilities. Players can trade Galactic Cubes in the game’s marketplace, adding real-world value to these digital assets.
 
+Video Demo: https://www.youtube.com/watch?v=5IdEpr4liUI
+
 ## Objective
 
 The primary objective of Galactic Minters is to provide an immersive and engaging gaming experience where players can explore, collaborate, and trade while crafting rare and valuable NFTs in the form of Galactic Cubes. By leveraging blockchain technology, the game aims to create a decentralized, transparent, and secure platform for players to interact, trade, and showcase their unique creations.
