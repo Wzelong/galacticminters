@@ -29,7 +29,7 @@ const formatCooldownTime = (time) => {
   const seconds = Math.floor((time / 1000) % 60);
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 };
-const stars = generateStars(2000);
+const stars = generateStars(800);
 const Galaxy = (props) => {
   const setDisplayGalaxy = props.setDisplayGalaxy;
   const setPlanetID = props.setPlanetID;
