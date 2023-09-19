@@ -6,7 +6,6 @@ import Loading from "./Loading";
 import GlobalFonts from "./fonts/fonts";
 import { useEtherContext } from "./contexts/EtherContext";
 import Galaxy from "./pages/Galaxy/Galaxy";
-import AddData from "./AddData";
 import { ethers } from "ethers";
 
 const CONTRACT_ADDRESS = "0x77dC9e43FB7f260e37264380B063055B6ba9Cd51";
@@ -53,6 +52,8 @@ const Router = () => {
         } else {
           setUserConnect(false);
         }
+      } else {
+        alert("Please install MetaMask!");
       }
     };
     checkConnection();
@@ -93,7 +94,6 @@ const Router = () => {
             </>
           }
         />
-        <Route path="/add" element={<AddData />} />
         <Route path="*" element={<Navigate to="/" replace />} />
         <Route render={() => <Navigate to="/" />} />
       </Routes>
