@@ -19,7 +19,7 @@ const Router = () => {
   const [planetID, setPlanetID] = useState("0");
   const [displayGalaxy, setDisplayGalaxy] = useState(false);
   const [sceneLoaded, setSceneLoaded] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [warning, setWarning] = useState("");
   const {
     accountAddress,
     setAccountAddress,
@@ -30,6 +30,7 @@ const Router = () => {
   useEffect(() => {
     const checkConnection = async () => {
       if (window.ethereum) {
+        setWarning("");
         const accounts = await window.ethereum.request({
           method: "eth_accounts",
         });
@@ -53,7 +54,7 @@ const Router = () => {
           setUserConnect(false);
         }
       } else {
-        alert("Please install MetaMask!");
+        setWarning("Please install MetaMask");
       }
     };
     checkConnection();
@@ -67,7 +68,7 @@ const Router = () => {
           path="/"
           element={
             <>
-              {<Loading sceneLoaded={sceneLoaded} />}
+              {<Loading sceneLoaded={sceneLoaded} warning={warning} />}
               {userConnect !== null &&
                 (userConnect ? (
                   displayGalaxy ? (

@@ -5,7 +5,11 @@ import logo from "./images/PlayerHomeLogo.png";
 const Loading = (props) => {
   return (
     <LoadingWrapper sceneLoaded={props.sceneLoaded}>
-      <Logo src={logo} />
+      {props.warning.length > 0 ? (
+        <h1>{props.warning}</h1>
+      ) : (
+        <Logo src={logo} />
+      )}
     </LoadingWrapper>
   );
 };
@@ -25,6 +29,7 @@ const LoadingWrapper = styled.div`
   background-color: #000000;
   color: #ffffff;
   font-family: "GalacticFont";
+  font-size: 1.5vw;
 `;
 
 const Logo = styled.img`
